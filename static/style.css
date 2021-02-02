@@ -1,0 +1,25 @@
+table, th, td {
+	border: 1px solid black;
+}
+
+.navbar {
+	color: #eeeeee;
+	background-color: #333333;
+	padding: 10px;
+}
+
+a:link {color: green;}      /* unvisited link */
+a:visited {color: green;}   /* visited link */
+a:hover {color: green;}     /* mouse over link */
+a:active {color: green;}    /* selected link */
+
+#main-content {
+	padding-left: 10%;
+	padding-right: 10%;
+	padding-top: 100px;
+	background-color: #eeeeee;
+}
+
+.card {
+	background-color: #dddddd;
+}

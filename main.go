@@ -6,14 +6,16 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		// Show the "Send Call" page
-		tmpl := template.Must(template.ParseFiles("call.html"))
-		tmpl.Execute(w, "data goes here")
+		templates.ExecuteTemplate(w, "call.html", nil)
 
 	} else if r.Method == http.MethodPost {
 		// Create call with entered details
@@ -26,8 +28,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		// Show all active calls
-		tmpl := template.Must(template.ParseFiles("calls.html"))
-		tmpl.Execute(w, "data goes here")
+		templates.ExecuteTemplate(w, "active.html", nil)
 	} else {
 		io.WriteString(w, "Invalid request")
 	}
@@ -37,8 +38,7 @@ func handlerImport(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 
 		// Show import page
-		tmpl := template.Must(template.ParseFiles("import.html"))
-		tmpl.Execute(w, "data goes here")
+		templates.ExecuteTemplate(w, "import.html", nil)
 
 	} else if r.Method == http.MethodPost {
 
@@ -54,16 +54,39 @@ func handlerStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 
 		// Show Call Details
-		tmpl := template.Must(template.ParseFiles("status.html"))
-		tmpl.Execute(w, "data goes here")
+		templates.ExecuteTemplate(w, "status.html", nil)
 
 	} else {
 		io.WriteString(w, "Invalid request")
 	}
 }
 
+func ParseTemplates() *template.Template {
+	templ := template.New("")
+	err := filepath.Walk("./templates", func(path string, info os.FileInfo, err error) error {
+		if strings.Contains(path, ".html") {
+			_, err = templ.ParseFiles(path)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
+		return err
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return templ
+}
+
+var templates *template.Template
+
 func main() {
 	r := mux.NewRouter()
+
+	templates = ParseTemplates()
 	// Routes consist of a path and a handler function.
 
 	// POST
@@ -74,11 +97,14 @@ func main() {
 	// - Open Time
 	// - Close Time
 	// - Location
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 	r.HandleFunc("/call", handlerSendCall)
+	r.HandleFunc("/call/{id}", handlerStatus)
 	r.HandleFunc("/active", handlerActiveCalls)
 	r.HandleFunc("/import", handlerImport)
-	r.HandleFunc("/status/:id", handlerStatus)
 
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe("localhost:12000", r))
 }

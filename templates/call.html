@@ -1,42 +1,29 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width">
-		<link rel="stylesheet" href="style.css">
-		<title>Ruf 3 Zusagen</title>
-		link
-	</head>
-	<body>
+{{ template "header.html" }}
+<h1>Neuer Ruf</h1>
 
-		<h1>Zusagen</h1>
-		<table>
-			<th>
-				<td>ID</td>
-				<td>Bestätigt um</td>
-				<td>Rufnummer</td>
-				<td>Gruppe</td>
-				<td>Status</td>
-			</th>
+<form action="/">
+	<label for="title">Titel</label><br>
+	<input type="text" id="titel" name="titel" value="z.b. Ruf IZ Duisburg"><br>
 
-			<tr>
-				<td>12345</td>
-				<td>16:45</td>
-				<td>01763333333</td>
-				<td>1</td>
-				<td>geimpft</td>
-			</tr>
+	<label for="termine">Anzahl Impftermine</label><br>
+	<input type="number" id="termine" name="termine" value="12"><br><br>
 
 
-			<tr>
-				<td>17783</td>
-				<td>16:50</td>
-				<td>0177777773</td>
-				<td>1</td>
-				<td>ungeimft</td>
-			</tr>
+	<label for="start">Begin Impfung</label><br>
+	<input type="number" id="start-hour" name="start-hour" value="12">
+	<input type="number" id="start-min" name="start-min" value="12"><br><br>
 
-		</table>
 
-	</body>
-</html>
+	<label for="end">Ende Impfung</label><br>
+	<input type="number" id="end" name="end" value="12">
+	<input type="number" id="end-min" name="end-min" value="12"><br><br>
+
+
+
+	<label for="location">Standort</label><br>
+	<input type="text" id="location" name="location" value="irgendwo im nirgendwo"><br>
+
+	<input type="submit" value="Ruf Starten">
+</form>
+
+{{ template "footer.html" }}

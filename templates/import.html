@@ -1,32 +1,31 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width">
-		<link rel="stylesheet" href="style.css">
-		<title>Import</title>
-	</head>
-	<body>
+{{ template "header.html" }}
 
-		<a href="http://www.url.com" target="_blank">Neue Ruf</a>
-		<a href="http://www.url.com" target="_blank">Aktive Rufe</a>
 
-		<h1>Import Datei</h1>
-		<form method="post" enctype="multipart/form-data">
-			<label for="datei">Datei</label></br>
-			<input id="datei" name="datei" type="file" size="50" accept="text/*">
-			<button>Hochladen</button>
-		</form>
 
-		<h1>Import einzel</h1>
-		<form action="/action_page.php">
-			<label for="number">Rufnummer</label>
-			<input type="text" id="number" name="number"><br><br>
+<div class="card">
+	<h1>Import Datei</h1>
+	<form method="post" enctype="multipart/form-data">
+		<label for="datei">Datei</label></br>
+		<input id="datei" name="datei" type="file" size="50" accept="text/*">
+		</br>
+		</br>
+		<input type="submit" value="Hochladen">
+	</form>
+</div>
 
-			<label for="group">Gruppe</label>
-			<input type="number" id="group" name="group" min="1" max="10">
 
-			<input type="submit" value="Submit">
-		</form>
-	</body>
-</html>
+<div class="card">
+	<h1>Import einzele Person</h1>
+	<form action="/action_page.php">
+		<label for="number">Rufnummer</label>
+		<input type="text" id="number" name="number">
+
+		<label for="group">Gruppe</label>
+		<input type="number" id="group" name="group" min="1" max="10">
+		</br>
+		</br>
+
+		<input type="submit" value="Hinzufügen">
+	</form>
+</div>
+{{ template "footer.html" }}
