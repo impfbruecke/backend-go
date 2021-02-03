@@ -83,6 +83,11 @@ func ParseTemplates() *template.Template {
 
 var templates *template.Template
 
+func redirectHandler(w http.ResponseWriter, r *http.Request) {
+
+	http.Redirect(w, r, "http://api.impfbruecke.de", 301)
+}
+
 func main() {
 	r := mux.NewRouter()
 
@@ -100,6 +105,7 @@ func main() {
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
+	r.HandleFunc("/", redirectHandler)
 	r.HandleFunc("/call", handlerSendCall)
 	r.HandleFunc("/call/{id}", handlerStatus)
 	r.HandleFunc("/active", handlerActiveCalls)
