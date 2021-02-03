@@ -62,17 +62,33 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Invalid request")
 	}
 }
-
 func handlerImport(w http.ResponseWriter, r *http.Request) {
+
+	// GET requests show import page
 	if r.Method == http.MethodGet {
 
-		// Show import page
 		templates.ExecuteTemplate(w, "import.html", nil)
 
+		// POST requests submitt data and/or upload csv files
 	} else if r.Method == http.MethodPost {
 
-		// Upload data and save
-		io.WriteString(w, "This is a post request")
+		// Try to create new call from input data
+		r.ParseForm()
+		persons, err := NewPersons(r.Form)
+		if err != nil {
+			log.Println(err)
+			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig")
+			return
+		}
+
+		// Add call to bridge
+		if err := bridge.AddPersons(persons); err != nil {
+			log.Println(err)
+			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden")
+			return
+		}
+
+		templates.ExecuteTemplate(w, "success.html", "Import Erfolgreich!")
 
 	} else {
 		io.WriteString(w, "Invalid request")
