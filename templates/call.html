@@ -1,22 +1,23 @@
 {{ template "header.html" }}
 <h1>Neuer Ruf</h1>
 
-<form action="/">
+<form action="/call" method="post">
+
 	<label for="title">Titel</label><br>
 	<input type="text" id="titel" name="titel" value="z.b. Ruf IZ Duisburg"><br>
 
-	<label for="termine">Anzahl Impftermine</label><br>
-	<input type="number" id="termine" name="termine" value="12"><br><br>
+	<label for="capacity">Anzahl Impftermine</label><br>
+	<input type="number" id="capacity" name="capacity" value="12"><br><br>
 
 
-	<label for="start">Begin Impfung</label><br>
+	<label for="start-hour">Begin Impfung</label><br>
 	<input type="number" id="start-hour" name="start-hour" value="12">
-	<input type="number" id="start-min" name="start-min" value="12"><br><br>
+	<input type="number" id="start-min" name="start-min" value="15"><br><br>
 
 
-	<label for="end">Ende Impfung</label><br>
-	<input type="number" id="end" name="end" value="12">
-	<input type="number" id="end-min" name="end-min" value="12"><br><br>
+	<label for="end-hour">Ende Impfung</label><br>
+	<input type="number" id="end-hour" name="end-hour" value="16">
+	<input type="number" id="end-min" name="end-min" value="54"><br><br>
 
 
 

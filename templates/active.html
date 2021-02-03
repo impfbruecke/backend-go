@@ -1,20 +1,26 @@
 {{ template "header.html" }}
-		<h1>Aktive Rufe</h1>
-		<table>
-			<tr>
-				<th>Titel</th>
-				<th>Gesendet um</th>
-				<th>Zusagen</th>
-			</tr>
+<h1>Aktive Rufe</h1>
+<table>
+	<tr>
+		<th>Titel</th>
+		<th>Beginnt um</th>
+		<th>Endet um</th>
+		<th>Ort</th>
+	</tr>
 
-			<tr>
-				<td>Ruf 1 - IZ Duisburg</td>
-				<td>12:45</td>
-				<td>315</td>
-			</tr>
-		</table>
+	{{range .}}
+	<tr>
+		<td> {{.CenterID}} </td>
+		<td> {{.TimeStart.Format "15:04"}}</td>
+		<td> {{.TimeEnd.Format "15:04"}}</td>
+		<td> {{.Location}}</td>
+	</tr>
+	{{end}}
+
+</table>
 
 
-		<button class="favorite styled" type="button"> Ruf Abschließen </button>
+
+<button class="favorite styled" type="button"> Ruf Abschließen </button>
 
 {{ template "footer.html" }}
