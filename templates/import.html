@@ -5,11 +5,9 @@
 <div class="card">
 	<h1>Import Datei</h1>
 	<form method="post" enctype="multipart/form-data">
-		<label for="datei">Datei</label></br>
+		<label for="datei">Datei auswählen</label></br>
 		<input id="datei" name="datei" type="file" size="50" accept="text/*">
-		</br>
-		</br>
-		<input type="submit" value="Hochladen">
+		<input type="submit" class="pure-button dark" value="Hochladen">
 	</form>
 </div>
 
@@ -22,10 +20,8 @@
 
 		<label for="group">Gruppe</label>
 		<input type="number" id="group" name="group" min="1" max="10">
-		</br>
-		</br>
-
-		<input type="submit" value="Hinzufügen">
+		<input type="submit" class="pure-button dark" value="Hinzufügen">
 	</form>
 </div>
+
 {{ template "footer.html" }}

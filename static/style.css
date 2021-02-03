@@ -1,17 +1,19 @@
-table, th, td {
-	border: 1px solid black;
-}
-
 .navbar {
-	color: #eeeeee;
-	background-color: #333333;
 	padding: 10px;
 }
 
-a:link {color: green;}      /* unvisited link */
-a:visited {color: green;}   /* visited link */
-a:hover {color: green;}     /* mouse over link */
-a:active {color: green;}    /* selected link */
+a:link {
+	color: #eeeeee;
+} /* unvisited link */
+a:visited {
+	color: #eeeeee;
+} /* visited link */
+a:hover {
+	color: #eeeeee;
+} /* mouse over link */
+a:active {
+	color: #eeeeee;
+} /* selected link */
 
 #main-content {
 	padding-left: 10%;
@@ -19,7 +21,20 @@ a:active {color: green;}    /* selected link */
 	padding-top: 100px;
 	background-color: #eeeeee;
 }
+.dark {
+	color: #eeeeee;
+	background-color: #333333;
+}
+
+footer {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	padding: 10px;
+}
 
 .card {
+	padding: 30px;
 	background-color: #dddddd;
+	margin: 30px;
 }

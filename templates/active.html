@@ -1,12 +1,18 @@
 {{ template "header.html" }}
 <h1>Aktive Rufe</h1>
-<table>
+<table class="pure-table">
+	<thead>
+
 	<tr>
 		<th>Titel</th>
 		<th>Beginnt um</th>
 		<th>Endet um</th>
 		<th>Ort</th>
+		<th></th>
 	</tr>
+	</thead>
+	<tbody>
+
 
 	{{range .}}
 	<tr>
@@ -14,13 +20,14 @@
 		<td> {{.TimeStart.Format "15:04"}}</td>
 		<td> {{.TimeEnd.Format "15:04"}}</td>
 		<td> {{.Location}}</td>
+		<td> <button class="pure-button" type="button"> Details </button> </td>
 	</tr>
 	{{end}}
+	</tbody>
 
 </table>
 
 
 
-<button class="favorite styled" type="button"> Ruf Abschließen </button>
 
 {{ template "footer.html" }}
