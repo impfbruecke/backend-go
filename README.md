@@ -77,13 +77,14 @@ TODO
 
 
 ## Twilio
-
 Twilio Nummer:  +49 1573 5984785
 
 
 Hab Twilio aufgesetzt:
 
-Eingehende SMS werden wie folgt verarbeitet:
+Eingehende SMS werden folgt verarbeitet und triggern dann API Calls bei der Impfbruecke :
+
+https://www.twilio.com/docs/studio/widget-library/http-request
 
 
 | SMS Inhalt| JA| STORNO | LOESCHEN LÖSCHEN|
@@ -101,7 +102,9 @@ Die payload ist überall die gleiche und beinhaltet die Absendernummer im [e.164
 ```
 
 
-Der Weg um SMS zu senden läuft auch über eine REST API.
+Der Weg um SMS zu senden läuft auch über eine REST API
+
+https://www.twilio.com/docs/studio/rest-api
 
 Endpoint ist ein POST auf "https://studio.twilio.com/v2/Flows/FWa50a95a66d8639edd72ca466b3dfba32/Executions" mit den Parametern "To" und "From"  und Parameters=json
 
@@ -120,7 +123,7 @@ Dieser JSON schicke ein Send&Wait.SMS inhalt in "message" packen und mit waitSec
 
 {
 "type": "anfrage",
-"message:"string",
+"message":"string",
 "waitSeconds":3600
 }
 ```
@@ -134,10 +137,7 @@ B:
 ```json
 {
 "type": "nachricht",
-"message:"string"
+"message":"string"
 }
 
 ```
-
-
-hier kann sind folgende Parameter verpflichtend
