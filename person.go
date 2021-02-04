@@ -3,7 +3,7 @@ package main
 type Person struct {
 	ID       int    `db:"id"`
 	CenterID int    `db:"center_id"`
-	Group    int    `db:"group"`
+	Group    int    `db:"group_num"`
 	Phone    string `db:"phone"`
 }
 

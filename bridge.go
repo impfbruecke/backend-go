@@ -15,8 +15,8 @@ type Bridge struct {
 var schemaPersons = `
 CREATE TABLE IF NOT EXISTS persons (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	phone TEXT PRIMARY KEY ON CONFLICT REPLACE,
-	group INTEGER,
+	phone TEXT,
+	group_num INTEGER,
 	last_call INTEGER
 );
 `
@@ -37,7 +37,7 @@ func NewBridge() *Bridge {
 
 	// Open connection to database file. Will be created if it does not already
 	// exist. Exit application on errors, we can't continue without database
-	db, err := sqlx.Connect("sqlite3", "data.db")
+	db, err := sqlx.Connect("sqlite3", "./data.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,8 +64,8 @@ func (b *Bridge) AddCall(call Call) error {
 func (b *Bridge) AddPerson(person Person) error {
 	tx := b.db.MustBegin()
 	tx.NamedExec(
-		"INSERT INTO persons (center_id, group, phone) VALUES "+
-			"(:center_id, :group, :phone)", &person)
+		"INSERT INTO persons (center_id, group_num, phone) VALUES "+
+			"(:center_id, :group_num, :phone)", &person)
 
 	return tx.Commit()
 }
@@ -77,8 +77,8 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	tx := b.db.MustBegin()
 	for k := range persons {
 		tx.NamedExec(
-			"INSERT INTO persons (center_id, group, phone) VALUES"+
-				"(:center_id, :group, :phone)", &persons[k])
+			"INSERT INTO persons (center_id, group_num, phone) VALUES"+
+				"(:center_id, :group_num, :phone)", &persons[k])
 
 	}
 	return tx.Commit()
