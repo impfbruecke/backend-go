@@ -8,12 +8,12 @@ import (
 )
 
 type Call struct {
-	Title     string
-	CenterID  int
-	Capacity  int
-	TimeStart time.Time
-	TimeEnd   time.Time
-	Location  string
+	Title     string    `db:"title"`
+	CenterID  int       `db:"center_id"`
+	Capacity  int       `db:"capacity"`
+	TimeStart time.Time `db:"time_start"`
+	TimeEnd   time.Time `db:"time_end"`
+	Location  string    `db:"location"`
 }
 
 func parseInputTime(h, m string) (time.Time, error) {

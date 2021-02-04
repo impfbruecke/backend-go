@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -62,19 +63,31 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Invalid request")
 	}
 }
-func handlerImport(w http.ResponseWriter, r *http.Request) {
+func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 
 	// GET requests show import page
 	if r.Method == http.MethodGet {
 
-		templates.ExecuteTemplate(w, "import.html", nil)
+		templates.ExecuteTemplate(w, "add.html", nil)
 
-		// POST requests submitt data and/or upload csv files
 	} else if r.Method == http.MethodPost {
+
+		// TODO validate data, ignore empty
+		r.ParseForm()
+		data := r.Form
+		phone := data.Get("phone")
+		group := data.Get("group")
 
 		// Try to create new call from input data
 		r.ParseForm()
-		persons, err := NewPersons(r.Form)
+
+		groupNum, err := strconv.Atoi(group)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		person, err := NewPerson(0, groupNum, phone)
 		if err != nil {
 			log.Println(err)
 			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig")
@@ -82,7 +95,7 @@ func handlerImport(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Add call to bridge
-		if err := bridge.AddPersons(persons); err != nil {
+		if err := bridge.AddPerson(person); err != nil {
 			log.Println(err)
 			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden")
 			return
@@ -151,7 +164,8 @@ func main() {
 	r.HandleFunc("/call", handlerSendCall)
 	r.HandleFunc("/call/{id}", handlerStatus)
 	r.HandleFunc("/active", handlerActiveCalls)
-	r.HandleFunc("/import", handlerImport)
+	r.HandleFunc("/add", handlerAddPerson)
+	r.HandleFunc("/upload", handlerUpload)
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe("localhost:12000", r))
