@@ -149,15 +149,17 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	r := mux.NewRouter()
-
+	// Intial setup. Instanciate bridge and parse html templates
 	templates = parseTemplates()
 	bridge = NewBridge()
+
+	// Routes
+	r := mux.NewRouter()
 
 	// Serve static files like css and images
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
-	// Redirect to /call
+	// Redirect / to /call for convenience
 	r.HandleFunc("/", redirectHandler)
 
 	// Handler functions to endpoints
@@ -166,6 +168,9 @@ func main() {
 	r.HandleFunc("/active", handlerActiveCalls)
 	r.HandleFunc("/add", handlerAddPerson)
 	r.HandleFunc("/upload", handlerUpload)
+
+	// Handle incoming webhooks
+	r.HandleFunc("/api/{endpoint}", handlerApi)
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe("localhost:12000", r))

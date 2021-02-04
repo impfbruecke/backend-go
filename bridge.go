@@ -102,3 +102,18 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 	b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
 	return calls, nil
 }
+
+func (b *Bridge) PersonAcceptCall() error {
+	//TODO implement
+	return nil
+}
+
+func (b *Bridge) PersonCancelCall() error {
+	//TODO implement
+	return nil
+}
+
+func (b *Bridge) PersonDelete() error {
+	//TODO implement
+	return nil
+}
