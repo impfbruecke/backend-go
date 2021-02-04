@@ -3,39 +3,76 @@
 ## Endpoints
 
 ### GET /
+Redirect to `/call` for convenience
+
+#### Parameters:
+none
 
 ### GET /static
 Serves static files like css and images from the `/static` directory. Place any file there you want make publicly avialable
 
+#### Parameters:
+none
+
 ### GET /call
 Show `call.html` page, which allows to create new calls
+
+#### Parameters:
+none
 
 ### POST /call
 Create a new call
 
+#### Parameters:
+TODO
+
 ### GET /call/{id}
 Information about call with ID `{id}`
+
+#### Parameters:
+none
 
 ### GET /active
 Show `active.html`, which displays active calls
 
+#### Parameters:
+none
+
 ### GET /add
 Show `add.html`, which allows to add a single person to the database
+
+#### Parameters:
+none
 
 ### POST /add
 Add person to database
 
+#### Parameters:
+TODO
+
 ### POST /upload
 Upload `.csv` for bulk import of persons
+
+#### Parameters:
+TODO
 
 ### POST /api/ja
 Listen for incoming webhook to accept a appointment
 
+#### Parameters:
+TODO
+
 ### POST /api/loeschen
 Listen for incoming webhook to delete a single user from the database
 
+#### Parameters:
+TODO
+
 ### POST /api/storno
 Listen for incoming webhook to cancel an appointment
+
+#### Parameters:
+TODO
 
 
 
