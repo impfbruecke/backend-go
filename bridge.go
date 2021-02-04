@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -35,9 +36,20 @@ CREATE TABLE IF NOT EXISTS calls (
 
 func NewBridge() *Bridge {
 
+	// Use the path in envrionment variable if specified, default fallback to
+	// ./data.db for testing
+	dbPath := "./data.db"
+
+	// Check if path is set
+	if os.Getenv("IMPF_DB_FILE") != "" {
+		dbPath = os.Getenv("IMPF_DB_FILE")
+	}
+
+	log.Println("Using database:", dbPath)
+
 	// Open connection to database file. Will be created if it does not already
 	// exist. Exit application on errors, we can't continue without database
-	db, err := sqlx.Connect("sqlite3", "./data.db")
+	db, err := sqlx.Connect("sqlite3", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
