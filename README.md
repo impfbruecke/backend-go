@@ -1,6 +1,43 @@
-# backend-go
+# Impfbruecke
 
-## API
+## Endpoints
+
+### GET /
+
+### GET /static
+Serves static files like css and images from the `/static` directory. Place any file there you want make publicly avialable
+
+### GET /call
+Show `call.html` page, which allows to create new calls
+
+### POST /call
+Create a new call
+
+### GET /call/{id}
+Information about call with ID `{id}`
+
+### GET /active
+Show `active.html`, which displays active calls
+
+### GET /add
+Show `add.html`, which allows to add a single person to the database
+
+### POST /add
+Add person to database
+
+### POST /upload
+Upload `.csv` for bulk import of persons
+
+### POST /api/ja
+Listen for incoming webhook to accept a appointment
+
+### POST /api/loeschen
+Listen for incoming webhook to delete a single user from the database
+
+### POST /api/storno
+Listen for incoming webhook to cancel an appointment
+
+
 
 ### Twilio
 
