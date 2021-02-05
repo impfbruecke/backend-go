@@ -68,7 +68,14 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 	// GET requests show import page
 	if r.Method == http.MethodGet {
 
-		templates.ExecuteTemplate(w, "add.html", nil)
+		persons, err := bridge.GetPersons()
+		if err != nil {
+			log.Warn(err)
+			io.WriteString(w, "Failed to retrieve persons")
+			return
+		}
+
+		templates.ExecuteTemplate(w, "add.html", persons)
 
 	} else if r.Method == http.MethodPost {
 
