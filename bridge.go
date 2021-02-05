@@ -16,9 +16,9 @@ type Bridge struct {
 var schemaPersons = `
 CREATE TABLE IF NOT EXISTS persons (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	phone TEXT,
-	center_id INTEGER,
-	group_num INTEGER,
+	phone TEXT NOT NULL,
+	center_id INTEGER NOT NULL,
+	group_num INTEGER NOT NULL,
 	last_call INTEGER
 );
 `
@@ -26,12 +26,12 @@ CREATE TABLE IF NOT EXISTS persons (
 var schemaCalls = `
 CREATE TABLE IF NOT EXISTS calls (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	title TEXT,
-	center_id INTEGER,
-	capacity INTEGER,
-	time_start DATETIME,
-	time_end DATETIME,
-	location TEXT
+	title TEXT NOT NULL,
+	center_id INTEGER NOT NULL,
+	capacity INTEGER NOT NULL,
+	time_start DATETIME NOT NULL,
+	time_end DATETIME NOT NULL,
+	location TEXT NOT NULL
 );
 `
 
