@@ -17,6 +17,7 @@ var schemaPersons = `
 CREATE TABLE IF NOT EXISTS persons (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	phone TEXT,
+	center_id INTEGER,
 	group_num INTEGER,
 	last_call INTEGER
 );
@@ -68,7 +69,7 @@ func NewBridge() *Bridge {
 
 func (b *Bridge) AddCall(call Call) error {
 
-	log.Debug("Adding call", call)
+	log.Debugf("Adding call %+v\n", call)
 
 	tx := b.db.MustBegin()
 	tx.NamedExec(
@@ -81,12 +82,14 @@ func (b *Bridge) AddCall(call Call) error {
 // AddPerson adds a person to the databse
 func (b *Bridge) AddPerson(person Person) error {
 
-	log.Debug("Adding person", person)
+	log.Debugf("Adding person %+v\n", person)
 
 	tx := b.db.MustBegin()
-	tx.NamedExec(
+	if _, err := tx.NamedExec(
 		"INSERT INTO persons (center_id, group_num, phone) VALUES "+
-			"(:center_id, :group_num, :phone)", &person)
+			"(:center_id, :group_num, :phone)", &person); err != nil {
+		return err
+	}
 
 	return tx.Commit()
 }
@@ -95,11 +98,16 @@ func (b *Bridge) AddPerson(person Person) error {
 // AddPerson() function here, to optimize performance. Named transactions are
 // created for each person, but the commit is only done once
 func (b *Bridge) AddPersons(persons []Person) error {
+
+	log.Debugf("Adding persons: %+v\n ", persons)
+
 	tx := b.db.MustBegin()
 	for k := range persons {
-		tx.NamedExec(
+		if _, err := tx.NamedExec(
 			"INSERT INTO persons (center_id, group_num, phone) VALUES"+
-				"(:center_id, :group_num, :phone)", &persons[k])
+				"(:center_id, :group_num, :phone)", &persons[k]); err != nil {
+			return err
+		}
 
 	}
 	return tx.Commit()
@@ -117,8 +125,24 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 		log.Fatal(err)
 	}
 
-	log.Debug("Found calls: ", calls)
-	return calls, nil
+	log.Debugf("Found calls: %+v\n", calls)
+	return calls, err
+}
+
+func (b *Bridge) GetPersons() ([]Person, error) {
+
+	log.Debug("Retrieving persons")
+
+	// Query the database, storing results in a []User (wrapped in []interface{})
+	persons := []Person{}
+	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
+	err := b.db.Select(&persons, "SELECT * FROM persons")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Debugf("Found persons: %+v\n", persons)
+	return persons, err
 }
 
 func (b *Bridge) PersonAcceptCall() error {
