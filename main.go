@@ -1,9 +1,9 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -27,14 +27,14 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		call, err := NewCall(r.Form)
 		if err != nil {
-			log.Println(err)
+			log.Warn(err)
 			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig, Ruf wurde nicht erstellt")
 			return
 		}
 
 		// Add call to bridge
 		if err := bridge.AddCall(call); err != nil {
-			log.Println(err)
+			log.Warn(err)
 			templates.ExecuteTemplate(w, "error.html", "Ruf konnte nicht gespeichert werden")
 			return
 		}
@@ -51,7 +51,7 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
 		calls, err := bridge.GetActiveCalls()
 		if err != nil {
-			log.Println(err)
+			log.Warn(err)
 			io.WriteString(w, "Failed to retrieve calls")
 			return
 		}
@@ -149,11 +149,25 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
+	if os.Getenv("IMPF_MODE") == "DEVEL" {
+
+		// Output to stdout instead of the default stderr
+		// Can be any io.Writer, see below for File example
+		log.SetOutput(os.Stdout)
+		// Only log the warning severity or above.
+		log.SetLevel(log.DebugLevel)
+		log.Info("Starting in DEVEL mode")
+	}
+
 	// Intial setup. Instanciate bridge and parse html templates
+	log.Info("Parsing templates")
 	templates = parseTemplates()
+
+	log.Info("Creating new bridge")
 	bridge = NewBridge()
 
 	// Routes
+	log.Info("Setting up routes")
 	r := mux.NewRouter()
 
 	// Serve static files like css and images
@@ -173,5 +187,8 @@ func main() {
 	r.HandleFunc("/api/{endpoint}", handlerApi)
 
 	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe("localhost:12000", r))
+
+	bindAddress := "localhost:12000"
+	log.Info("Starting server on: ", bindAddress)
+	log.Fatal(http.ListenAndServe(bindAddress, r))
 }

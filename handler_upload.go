@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/csv"
+	log "github.com/sirupsen/logrus"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 )

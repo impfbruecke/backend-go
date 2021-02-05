@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/url"
 	"strconv"
 	"time"
 )
 
 type Call struct {
+	ID        int       `db:"id"`
 	Title     string    `db:"title"`
 	CenterID  int       `db:"center_id"`
 	Capacity  int       `db:"capacity"`
@@ -22,6 +23,8 @@ func parseInputTime(h, m string) (time.Time, error) {
 }
 
 func NewCall(data url.Values) (Call, error) {
+
+	// TODO Validate data
 
 	call := Call{}
 
@@ -53,7 +56,6 @@ func NewCall(data url.Values) (Call, error) {
 	call.TimeEnd = timeEnd
 	call.Location = location
 
-	// TODO Validate data
 	return call, nil
 
 }

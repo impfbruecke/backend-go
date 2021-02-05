@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS calls (
 	title TEXT,
 	center_id INTEGER,
 	capacity INTEGER,
-	time_start INTEGER,
-	time_end INTEGER,
+	time_start DATETIME,
+	time_end DATETIME,
 	location TEXT
 );
 `
@@ -56,13 +56,19 @@ func NewBridge() *Bridge {
 
 	// Exec the schema or fail; multi-statement Exec behavior varies between
 	// database drivers
+
+	log.Debug("Verifying DB schema for calls")
 	db.MustExec(schemaCalls)
+
+	log.Debug("Verifying DB schema for persons")
 	db.MustExec(schemaPersons)
 
 	return &Bridge{db: db}
 }
 
 func (b *Bridge) AddCall(call Call) error {
+
+	log.Debug("Adding call", call)
 
 	tx := b.db.MustBegin()
 	tx.NamedExec(
@@ -74,6 +80,9 @@ func (b *Bridge) AddCall(call Call) error {
 
 // AddPerson adds a person to the databse
 func (b *Bridge) AddPerson(person Person) error {
+
+	log.Debug("Adding person", person)
+
 	tx := b.db.MustBegin()
 	tx.NamedExec(
 		"INSERT INTO persons (center_id, group_num, phone) VALUES "+
@@ -97,23 +106,41 @@ func (b *Bridge) AddPersons(persons []Person) error {
 }
 
 func (b *Bridge) GetActiveCalls() ([]Call, error) {
+
+	log.Debug("Retrieving active calls")
+
 	// Query the database, storing results in a []User (wrapped in []interface{})
 	calls := []Call{}
-	b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
+	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
+	err := b.db.Select(&calls, "SELECT * FROM calls")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Debug("Found calls: ", calls)
 	return calls, nil
 }
 
 func (b *Bridge) PersonAcceptCall() error {
+
+	log.Debug("Accepting call")
+
 	//TODO implement
 	return nil
 }
 
 func (b *Bridge) PersonCancelCall() error {
+
+	log.Debug("Cancelling call")
+
 	//TODO implement
 	return nil
 }
 
 func (b *Bridge) PersonDelete() error {
+
+	log.Debug("Deleting person")
+
 	//TODO implement
 	return nil
 }
