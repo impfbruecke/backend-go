@@ -1,33 +1,29 @@
 {{ template "header.html" }}
-<h1>Aktive Rufe</h1>
-<table class="pure-table">
-	<thead>
 
-	<tr>
-		<th>Titel</th>
-		<th>Beginnt um</th>
-		<th>Endet um</th>
-		<th>Ort</th>
-		<th></th>
-	</tr>
-	</thead>
-	<tbody>
-
-
-	{{range .}}
-	<tr>
-		<td> {{.CenterID}} </td>
-		<td> {{.TimeStart.Format "15:04"}}</td>
-		<td> {{.TimeEnd.Format "15:04"}}</td>
-		<td> {{.Location}}</td>
-		<td> <button class="pure-button" type="button"> Details </button> </td>
-	</tr>
-	{{end}}
-	</tbody>
-
-</table>
-
-
-
+<div class="card">
+	<h2>Aktive Rufe</h2>
+	<table class="pure-table">
+		<thead>
+			<tr>
+				<th>Titel</th>
+				<th>Beginnt um</th>
+				<th>Endet um</th>
+				<th>Ort</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range .}}
+			<tr>
+				<td> {{.CenterID}} </td>
+				<td> {{.TimeStart.Format "15:04"}}</td>
+				<td> {{.TimeEnd.Format "15:04"}}</td>
+				<td> {{.Location}}</td>
+				<td> <form action="/call/{{.ID}}"> <input class="" type="submit" value="Details" /> </form> </td>
+			</tr>
+			{{end}}
+		</tbody>
+	</table>
+</div>
 
 {{ template "footer.html" }}

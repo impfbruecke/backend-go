@@ -113,6 +113,33 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	return tx.Commit()
 }
 
+type callstatus struct {
+	Call    Call
+	Persons []Person
+}
+
+func (b *Bridge) GetCallStatus(id string) (callstatus, error) {
+
+	var err error
+	status := callstatus{}
+
+	//Retrieve call information
+	call := Call{}
+	if err = b.db.Get(&call, "SELECT * FROM calls WHERE id=$1", id); err != nil {
+		log.Warn("Failed to find call with callID:", id)
+	}
+	status.Call = call
+
+	// Retrieve persons notified for that call
+	persons := []Person{}
+	if err = b.db.Get(&persons, "SELECT * FROM persons WHERE last_call=$1", id); err != nil {
+		log.Warn("Failed to find persons for callID:", id)
+	}
+	status.Persons = persons
+
+	return status, err
+}
+
 func (b *Bridge) GetActiveCalls() ([]Call, error) {
 
 	log.Debug("Retrieving active calls")
