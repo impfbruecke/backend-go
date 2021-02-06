@@ -30,24 +30,30 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		group := data.Get("group")
 
 		// Try to create new call from input data
-		// r.ParseForm()
-
 		groupNum, err := strconv.Atoi(group)
 
 		if err != nil {
-			log.Fatal(err)
+			templates.ExecuteTemplate(w, "error.html", "Ungültige Gruppe")
+			return
+		}
+
+		if phone == "" {
+			templates.ExecuteTemplate(w, "error.html", "Fehlende Rufnummer")
+			return
 		}
 
 		person, err := NewPerson(0, groupNum, phone, false)
 		if err != nil {
-			log.Println(err)
+			log.Info(err)
+			log.Debug(person)
 			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig")
 			return
 		}
 
 		// Add call to bridge
 		if err := bridge.AddPerson(person); err != nil {
-			log.Println(err)
+			log.Warn(err)
+			log.Warn(person)
 			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden")
 			return
 		}

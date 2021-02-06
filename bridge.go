@@ -84,9 +84,13 @@ func (b *Bridge) AddCall(call Call) error {
 	log.Debugf("Adding call %+v\n", call)
 
 	tx := b.db.MustBegin()
-	tx.NamedExec(
+	_, err := tx.NamedExec(
 		"INSERT INTO calls ( title, center_id, capacity, time_start, time_end, location) VALUES"+
 			"( :title, :center_id, :capacity, :time_start, :time_end, :location)", &call)
+
+	if err != nil {
+		return err
+	}
 
 	return tx.Commit()
 }
@@ -98,8 +102,8 @@ func (b *Bridge) AddPerson(person Person) error {
 
 	tx := b.db.MustBegin()
 	if _, err := tx.NamedExec(
-		"INSERT INTO persons (center_id, group_num, phone) VALUES "+
-			"(:center_id, :group_num, :phone)", &person); err != nil {
+		"INSERT INTO persons (center_id, group_num, phone, last_call, status) VALUES "+
+			"(:center_id, :group_num, :phone, :last_call, :status)", &person); err != nil {
 		return err
 	}
 
@@ -116,7 +120,7 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	tx := b.db.MustBegin()
 	for k := range persons {
 		if _, err := tx.NamedExec(
-			"INSERT INTO persons (center_id, group_num, phone) VALUES"+
+			"INSERT INTO persons (center_id, group_num, phone, last_call, status) VALUES "+
 				"(:center_id, :group_num, :phone)", &persons[k]); err != nil {
 			return err
 		}
@@ -162,8 +166,10 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 	calls := []Call{}
 	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
 	err := b.db.Select(&calls, "SELECT * FROM calls")
+
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return calls, err
 	}
 
 	log.Debugf("Found calls: %+v\n", calls)
@@ -179,7 +185,8 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
 	err := b.db.Select(&persons, "SELECT * FROM persons")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return persons, err
 	}
 
 	log.Debugf("Found persons: %+v\n", persons)

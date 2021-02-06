@@ -19,7 +19,11 @@ type Person struct {
 // single import this will just be an array with a single entry, for CSV upload
 // it may be longer.
 func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
-	person := Person{CenterID: centerID, Status: status}
+	person := Person{
+		CenterID: centerID,
+		LastCall: sql.NullInt64{},
+		Status:   status,
+	}
 
 	// Validate that phone number is not empty
 	if phone == "" {
@@ -31,6 +35,7 @@ func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 	if group == 0 {
 		return person, errors.New("Ungültige Gruppe: " + strconv.Itoa(group))
 	}
+
 	person.Group = group
 
 	return person, nil
