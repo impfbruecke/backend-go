@@ -98,7 +98,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		templates.ExecuteTemplate(w, "login.html", "Token Fehler")
-		log.Warn("Token Signing error: %v\n", err)
+		log.Warnf("Token Signing error: %v\n", err)
 		return
 	}
 
