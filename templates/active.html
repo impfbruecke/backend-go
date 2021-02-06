@@ -19,7 +19,7 @@
 				<td> {{.TimeStart.Format "15:04"}}</td>
 				<td> {{.TimeEnd.Format "15:04"}}</td>
 				<td> {{.Location}}</td>
-				<td> <form action="/call/{{.ID}}"> <input class="" type="submit" value="Details" /> </form> </td>
+				<td> <form action="/auth/call/{{.ID}}"> <input class="" type="submit" value="Details" /> </form> </td>
 			</tr>
 			{{end}}
 		</tbody>
