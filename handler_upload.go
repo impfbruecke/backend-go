@@ -58,7 +58,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 
 		// Try to create a new persion object from the data and return on
 		// errors
-		p, err := NewPerson(0, groupNum, record[1])
+		p, err := NewPerson(0, groupNum, record[1], false)
 		if err != nil {
 			log.Println(err)
 			return

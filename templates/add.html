@@ -1,7 +1,5 @@
 {{ template "header.html" }}
 
-
-
 <div class="card">
 	<h2>Import Datei</h2>
 	<form action="/upload" method="post" enctype="multipart/form-data">
@@ -10,7 +8,6 @@
 		<input type="submit" class="pure-button dark" value="Hochladen">
 	</form>
 </div>
-
 
 <div class="card">
 	<h2>Import einzele Person</h2>
@@ -26,32 +23,26 @@
 
 <div class="card">
 	<h2>Aktive Rufnummern</h2>
-
-<table class="pure-table">
-	<thead>
-
-	<tr>
-		<th>ID</th>
-		<th>Rufnummer</th>
-		<th>Gruppe</th>
-		<th>Letzter Ruf</th>
-	</tr>
-	</thead>
-	<tbody>
-
-
-	{{range .}}
-	<tr>
-		<td> {{.ID}} </td>
-		<td> {{.Phone}}</td>
-		<td> {{.Group}}</td>
-		<td> {{.LastCall}}</td>
-	</tr>
-	{{end}}
-	</tbody>
-
-</table>
-
+	<table class="pure-table">
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Rufnummer</th>
+				<th>Gruppe</th>
+				<th>Letzter Ruf</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{range .}}
+			<tr>
+				<td> {{.ID}} </td>
+				<td> {{.Phone}}</td>
+				<td> {{.Group}}</td>
+				<td> {{.LastCall}}</td>
+			</tr>
+			{{end}}
+		</tbody>
+	</table>
 </div>
 
 {{ template "footer.html" }}

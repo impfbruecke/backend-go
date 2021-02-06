@@ -1,32 +1,27 @@
 {{ template "header.html" }}
 
-<h1>Zusagen</h1>
-<table>
-	<th>
-		<td>ID</td>
-		<td>Bestätigt um</td>
-		<td>Rufnummer</td>
-		<td>Gruppe</td>
-		<td>Status</td>
-	</th>
+<div class="card">
 
-	<tr>
-		<td>12345</td>
-		<td>16:45</td>
-		<td>01763333333</td>
-		<td>1</td>
-		<td>geimpft</td>
-	</tr>
-
-
-	<tr>
-		<td>17783</td>
-		<td>16:50</td>
-		<td>0177777773</td>
-		<td>1</td>
-		<td>ungeimft</td>
-	</tr>
-
-</table>
+	<h1>{{.Call.Title}}</h1>
+	<h3>Ungeimpfte Zusagen</h3>
+	<table>
+		<th>
+			<td>ID</td>
+			<td>Bestätigt um</td>
+			<td>Rufnummer</td>
+			<td>Gruppe</td>
+			<td>Status</td>
+		</th>
+		{{range .Persons}}
+		<tr>
+			<td>{{.ID}}</td>
+			<td>{{.LastCalled}}</td>
+			<td>{{.Phone}}</td>
+			<td>{{.Group}}</td>
+			<td>geimpft</td>
+		</tr>
+		{{end}}
+	</table>
+</div>
 
 {{ template "footer.html" }}

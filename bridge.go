@@ -16,26 +16,29 @@ type Bridge struct {
 var schemaPersons = `
 CREATE TABLE IF NOT EXISTS persons (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	phone TEXT,
-	center_id INTEGER,
-	group_num INTEGER,
-	last_call INTEGER
+	phone TEXT NOT NULL,
+	center_id INTEGER NOT NULL,
+	group_num INTEGER NOT NULL,
+	last_call INTEGER,
+	status INTEGER NOT NULL
 );
 `
 
 var schemaCalls = `
 CREATE TABLE IF NOT EXISTS calls (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	title TEXT,
-	center_id INTEGER,
-	capacity INTEGER,
-	time_start DATETIME,
-	time_end DATETIME,
-	location TEXT
+	title TEXT NOT NULL,
+	center_id INTEGER NOT NULL,
+	capacity INTEGER NOT NULL,
+	time_start DATETIME NOT NULL,
+	time_end DATETIME NOT NULL,
+	location TEXT NOT NULL
 );
 `
 
 func NewBridge() *Bridge {
+
+	log.Info("Creating new bridge")
 
 	// Use the path in envrionment variable if specified, default fallback to
 	// ./data.db for testing
@@ -111,6 +114,35 @@ func (b *Bridge) AddPersons(persons []Person) error {
 
 	}
 	return tx.Commit()
+}
+
+type callstatus struct {
+	Call    Call
+	Persons []Person
+}
+
+func (b *Bridge) GetCallStatus(id string) (callstatus, error) {
+
+	var err error
+	status := callstatus{}
+
+	//Retrieve call information
+	call := Call{}
+	if err = b.db.Get(&call, "SELECT * FROM calls WHERE id=$1", id); err != nil {
+		log.Warn("Failed to find call with callID:", id)
+		log.Warn(err)
+	}
+	status.Call = call
+
+	// Retrieve persons notified for that call
+	persons := []Person{}
+	if err = b.db.Select(&persons, "SELECT * FROM persons WHERE last_call=$1", id); err != nil {
+		log.Warn("Failed to find persons for callID:", id)
+		log.Warn(err)
+	}
+	status.Persons = persons
+
+	return status, err
 }
 
 func (b *Bridge) GetActiveCalls() ([]Call, error) {
