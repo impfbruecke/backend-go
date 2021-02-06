@@ -15,6 +15,40 @@ import (
 var templates *template.Template
 var bridge *Bridge
 
+func init() {
+	var err error
+	var signBytes []byte
+	var verifyBytes []byte
+
+	// Show more logs if IMPF_MODE=DEVEL is set
+	if os.Getenv("IMPF_MODE") == "DEVEL" {
+		log.SetOutput(os.Stdout)
+		log.SetLevel(log.DebugLevel)
+		log.Info("Starting in DEVEL mode")
+	}
+
+	// Intial setup. Instanciate bridge and parse html templates
+	log.Info("Parsing templates")
+	templates = parseTemplates()
+
+	// read the key files before starting http handlers
+	if signBytes, err = ioutil.ReadFile(privKeyPath); err != nil {
+		log.Fatal(err)
+	}
+
+	if signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes); err != nil {
+		log.Fatal(err)
+	}
+
+	if verifyBytes, err = ioutil.ReadFile(pubKeyPath); err != nil {
+		log.Fatal(err)
+	}
+
+	if verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 
 	bridge = NewBridge()
@@ -51,46 +85,4 @@ func main() {
 	bindAddress := "localhost:12000"
 	log.Info("Starting server on: ", bindAddress)
 	log.Fatal(http.ListenAndServe(bindAddress, handler))
-}
-
-// middlewareLog is prepended to all handlers to log http requsts uniformly
-func middlewareLog(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logRequest(r)
-		next.ServeHTTP(w, r)
-	})
-}
-
-func init() {
-	var err error
-	var signBytes []byte
-	var verifyBytes []byte
-
-	// Show more logs if IMPF_MODE=DEVEL is set
-	if os.Getenv("IMPF_MODE") == "DEVEL" {
-		log.SetOutput(os.Stdout)
-		log.SetLevel(log.DebugLevel)
-		log.Info("Starting in DEVEL mode")
-	}
-
-	// Intial setup. Instanciate bridge and parse html templates
-	log.Info("Parsing templates")
-	templates = parseTemplates()
-
-	// read the key files before starting http handlers
-	if signBytes, err = ioutil.ReadFile(privKeyPath); err != nil {
-		log.Fatal(err)
-	}
-
-	if signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes); err != nil {
-		log.Fatal(err)
-	}
-
-	if verifyBytes, err = ioutil.ReadFile(pubKeyPath); err != nil {
-		log.Fatal(err)
-	}
-
-	if verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes); err != nil {
-		log.Fatal(err)
-	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rsa"
+	"database/sql"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
@@ -43,7 +44,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	inputUser := r.FormValue("user")
 	inputPass := r.FormValue("pass")
 
-	log.Debug("Trying to authenticate: user[%s] pass[%s]\n", inputUser, inputPass)
+	log.Debugf("Trying to authenticate: user[%s] pass[%s]\n", inputUser, inputPass)
 
 	// Create an instance of `Credentials` to store the credentials we get from
 	// the database
@@ -52,16 +53,13 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the existing entry present in the database for the given username
 	if err := bridge.db.Get(&storedCreds, "SELECT * FROM users WHERE username=$1", inputUser); err != nil {
 
-		log.Error("the error")
-
-		// TODO use something like this to implement checking if the error was
-		// caused by a non-existing user
-
-		// if err == sql.ErrNoRows {
-		// 	// User not present in the database
-		// 	w.WriteHeader(http.StatusUnauthorized)
-		// 	return
-		// }
+		// The user does not exist, just show login page
+		if err == sql.ErrNoRows {
+			// User not present in the database
+			w.WriteHeader(http.StatusUnauthorized)
+			templates.ExecuteTemplate(w, "login.html", "Ungültiger Login")
+			return
+		}
 		// If the error is of any other type, send a 500 status
 
 		//TODO better error handling. For now attempting to login with an user
@@ -93,6 +91,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		// user.
 
 		"AccessToken": "level1",
+		"Username":    inputUser,
 
 		// Set the expire time to one hour. After this period the token will be
 		// invalidated requiring the user to login again
