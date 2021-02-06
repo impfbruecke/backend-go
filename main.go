@@ -1,38 +1,21 @@
 package main
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
-
-	log "github.com/sirupsen/logrus"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"os"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
-
-	"io/ioutil"
+	log "github.com/sirupsen/logrus"
 )
 
 // All templates inside of ./templates and it's subfolders are parsed and can be executed by it's filename
 var templates *template.Template
 var bridge *Bridge
 
-func redirectHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/call", 301)
-}
-
 func main() {
-
-	// Show more logs if IMPF_MODE=DEVEL is set
-	if os.Getenv("IMPF_MODE") == "DEVEL" {
-		log.SetOutput(os.Stdout)
-		log.SetLevel(log.DebugLevel)
-		log.Info("Starting in DEVEL mode")
-	}
-
-	// Intial setup. Instanciate bridge and parse html templates
-	log.Info("Parsing templates")
-	templates = parseTemplates()
 
 	bridge = NewBridge()
 
@@ -78,12 +61,23 @@ func middlewareLog(next http.Handler) http.Handler {
 	})
 }
 
-// read the key files before starting http handlers
 func init() {
 	var err error
 	var signBytes []byte
 	var verifyBytes []byte
 
+	// Show more logs if IMPF_MODE=DEVEL is set
+	if os.Getenv("IMPF_MODE") == "DEVEL" {
+		log.SetOutput(os.Stdout)
+		log.SetLevel(log.DebugLevel)
+		log.Info("Starting in DEVEL mode")
+	}
+
+	// Intial setup. Instanciate bridge and parse html templates
+	log.Info("Parsing templates")
+	templates = parseTemplates()
+
+	// read the key files before starting http handlers
 	if signBytes, err = ioutil.ReadFile(privKeyPath); err != nil {
 		log.Fatal(err)
 	}

@@ -23,7 +23,6 @@ CREATE TABLE IF NOT EXISTS persons (
 	status INTEGER NOT NULL
 );
 `
-
 var schemaCalls = `
 CREATE TABLE IF NOT EXISTS calls (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +32,13 @@ CREATE TABLE IF NOT EXISTS calls (
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
 	location TEXT NOT NULL
+);
+`
+
+var schemaUsers = `
+CREATE TABLE IF NOT EXISTS users (
+  username text primary key,
+  password text
 );
 `
 
@@ -66,6 +72,9 @@ func NewBridge() *Bridge {
 
 	log.Debug("Verifying DB schema for persons")
 	db.MustExec(schemaPersons)
+
+	log.Debug("Verifying DB schema for users")
+	db.MustExec(schemaUsers)
 
 	return &Bridge{db: db}
 }

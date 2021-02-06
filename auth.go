@@ -2,10 +2,12 @@ package main
 
 import (
 	"crypto/rsa"
-	jwt "github.com/dgrijalva/jwt-go"
-	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
+	log "github.com/sirupsen/logrus"
 )
 
 // location of the files used for signing and verification
@@ -24,6 +26,11 @@ var (
 	signKey   *rsa.PrivateKey
 )
 
+type Credentials struct {
+	Password string `db:"password"`
+	Username string `db:"username"`
+}
+
 // reads the form values, checks them and creates the token
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	// make sure its post
@@ -33,18 +40,47 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.FormValue("user")
-	pass := r.FormValue("pass")
+	inputUser := r.FormValue("user")
+	inputPass := r.FormValue("pass")
 
-	log.Debug("Authenticate: user[%s] pass[%s]\n", user, pass)
+	log.Debug("Trying to authenticate: user[%s] pass[%s]\n", inputUser, inputPass)
 
-	// check values
-	// TODO implement real user/pw test
-	if user != "test" || pass != "test" {
+	// Create an instance of `Credentials` to store the credentials we get from
+	// the database
+	storedCreds := Credentials{}
+
+	// Get the existing entry present in the database for the given username
+	if err := bridge.db.Get(&storedCreds, "SELECT * FROM users WHERE username=$1", inputUser); err != nil {
+
+		log.Error("the error")
+
+		// TODO use something like this to implement checking if the error was
+		// caused by a non-existing user
+
+		// if err == sql.ErrNoRows {
+		// 	// User not present in the database
+		// 	w.WriteHeader(http.StatusUnauthorized)
+		// 	return
+		// }
+		// If the error is of any other type, send a 500 status
+
+		//TODO better error handling. For now attempting to login with an user
+		//that does not exist results in a server error being displayed
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Compare the stored hashed password, with the hashed version of the password that was received
+	if err := bcrypt.CompareHashAndPassword([]byte(storedCreds.Password), []byte(inputPass)); err != nil {
+		// If the two passwords don't match, return a 401 status
 		w.WriteHeader(http.StatusForbidden)
 		templates.ExecuteTemplate(w, "login.html", "Ungültiger Login")
 		return
 	}
+
+	// If we reach this point, that means the users password was correct and
+	// that they are authorized. The default 200 status is sent
 
 	// Create a signer for rsa 256
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
@@ -182,3 +218,25 @@ func middlewareAuth(next http.Handler) http.Handler {
 		}
 	})
 }
+
+// func Signup(w http.ResponseWriter, r *http.Request) {
+// 	// Parse and decode the request body into a new `Credentials` instance
+// 	creds := &Credentials{}
+// 	err := json.NewDecoder(r.Body).Decode(creds)
+// 	if err != nil {
+// 		// If there is something wrong with the request body, return a 400 status
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		return
+// 	}
+// 	// Salt and hash the password using the bcrypt algorithm
+// 	// The second argument is the cost of hashing, which we arbitrarily set as 8 (this value can be more or less, depending on the computing power you wish to utilize)
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), 8)
+
+// 	// Next, insert the username, along with the hashed password into the database
+// 	if _, err = db.Query("insert into users values ($1, $2)", creds.Username, string(hashedPassword)); err != nil {
+// 		// If there is any issue with inserting into the database, return a 500 error
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		return
+// 	}
+// 	// We reach this point if the credentials we correctly stored in the database, and the default status of 200 is sent back
+// }
