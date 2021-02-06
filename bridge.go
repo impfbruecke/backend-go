@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS persons (
 	phone TEXT NOT NULL,
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
-	last_call INTEGER
+	last_call INTEGER,
+	status INTEGER NOT NULL
 );
 `
 
@@ -36,6 +37,8 @@ CREATE TABLE IF NOT EXISTS calls (
 `
 
 func NewBridge() *Bridge {
+
+	log.Info("Creating new bridge")
 
 	// Use the path in envrionment variable if specified, default fallback to
 	// ./data.db for testing
@@ -127,13 +130,15 @@ func (b *Bridge) GetCallStatus(id string) (callstatus, error) {
 	call := Call{}
 	if err = b.db.Get(&call, "SELECT * FROM calls WHERE id=$1", id); err != nil {
 		log.Warn("Failed to find call with callID:", id)
+		log.Warn(err)
 	}
 	status.Call = call
 
 	// Retrieve persons notified for that call
 	persons := []Person{}
-	if err = b.db.Get(&persons, "SELECT * FROM persons WHERE last_call=$1", id); err != nil {
+	if err = b.db.Select(&persons, "SELECT * FROM persons WHERE last_call=$1", id); err != nil {
 		log.Warn("Failed to find persons for callID:", id)
+		log.Warn(err)
 	}
 	status.Persons = persons
 
