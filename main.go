@@ -15,6 +15,8 @@ import (
 var templates *template.Template
 var bridge *Bridge
 
+const tokenName = "AccessToken"
+
 func init() {
 	var err error
 	var signBytes []byte
@@ -26,6 +28,10 @@ func init() {
 		log.SetLevel(log.DebugLevel)
 		log.Info("Starting in DEVEL mode")
 	}
+
+	// location of the files used for signing and verification
+	privKeyPath := os.Getenv("IMPF_APP_KEY_PRIVATE") // openssl genrsa -out app.rsa keysize
+	pubKeyPath := os.Getenv("IMPF_APP_KEY_PUBLIC")   // openssl rsa -in app.rsa -pubout > app.rsa.pub
 
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")

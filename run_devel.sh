@@ -1,2 +1,1 @@
-export IMPF_MODE=DEVEL
-go run *.go
+export $(cat ./envfile) && go run *go

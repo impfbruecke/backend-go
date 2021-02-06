@@ -11,13 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// location of the files used for signing and verification
-const (
-	privKeyPath = "keys/app.rsa"     // openssl genrsa -out app.rsa keysize
-	pubKeyPath  = "keys/app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
-	tokenName   = "AccessToken"
-)
-
 // keys are held in global variables
 // i havn't seen a memory corruption/info leakage in go yet
 // but maybe it's a better idea, just to store the public key in ram?
