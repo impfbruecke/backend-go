@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rsa"
-	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 const (
 	privKeyPath = "keys/app.rsa"     // openssl genrsa -out app.rsa keysize
 	pubKeyPath  = "keys/app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
+	tokenName   = "AccessToken"
 )
 
 // keys are held in global variables
@@ -24,65 +24,60 @@ var (
 	signKey   *rsa.PrivateKey
 )
 
-// just some html, to lazy for http.FileServer()
-const (
-	tokenName = "AccessToken"
-
-	landingHtml = `<h2>Login</h2>
-<form action="/authenticate" method="POST">
-	<input type="text" name="user">
-	<input type="password" name="pass">
-	<input type="submit">
-</form>`
-)
-
 // reads the form values, checks them and creates the token
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	// make sure its post
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintln(w, "No POST", r.Method)
+		templates.ExecuteTemplate(w, "login.html", "Ungültiger Request")
 		return
 	}
 
 	user := r.FormValue("user")
 	pass := r.FormValue("pass")
 
-	log.Printf("Authenticate: user[%s] pass[%s]\n", user, pass)
+	log.Debug("Authenticate: user[%s] pass[%s]\n", user, pass)
 
 	// check values
-	if user != "test" || pass != "known" {
+	// TODO implement real user/pw test
+	if user != "test" || pass != "test" {
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprintln(w, "Wrong info")
+		templates.ExecuteTemplate(w, "login.html", "Ungültiger Login")
 		return
 	}
 
-	// create a signer for rsa 256
+	// Create a signer for rsa 256
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
+	// Set token properties and permissions
 	token.Claims = jwt.MapClaims{
+		// Set access level in claims. This will allow to implement multiple
+		// access levels (e.g. "normal", "admin", "moderator") if needed later
+		// on. For now all users have access level 1 since there is only one
+		// user.
+
 		"AccessToken": "level1",
 
-		"CustomUserInfo": struct {
-			Name string
-			Kind string
-		}{user, "human"},
-
-		// set the expire time
-		// see http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-20#section-4.1.4
-		"exp": time.Now().Add(time.Minute * 1).Unix(),
+		// Set the expire time to one hour. After this period the token will be
+		// invalidated requiring the user to login again
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	}
 
+	// Sign the token. We don't expect any errors here. If the occur anyway,
+	// something went wrong. Show login again and log a warning to look into
+	// the problem
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintln(w, "Sorry, error while Signing Token!")
-		log.Printf("Token Signing error: %v\n", err)
+		templates.ExecuteTemplate(w, "login.html", "Token Fehler")
+		log.Warn("Token Signing error: %v\n", err)
 		return
 	}
 
-	// i know using cookies to store the token isn't really helpfull for cross domain api usage
-	// but it's just an example and i did not want to involve javascript
+	// Storing the token in a cookie may break cross-domain API usage, but
+	// there is no need for it now and we can avoid using javascript. The calls
+	// to the API will be secured by basic auth in the reverse proxy and not by
+	// the application itself
 	http.SetCookie(w, &http.Cookie{
 		Name:       tokenName,
 		Value:      tokenString,
@@ -90,13 +85,100 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 		RawExpires: "0",
 	})
 
-	// Successful auth
+	// Successful authentication. Redirect to call.html for convenience
 	http.Redirect(w, r, "/auth/call", 301)
 }
 
-// serves the form and restricted link
+// Serve login page
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, landingHtml)
+	templates.ExecuteTemplate(w, "login.html", "Bitte einloggen")
+}
+
+// middlewareAuth  prepended to all handlers to handle authentication
+func middlewareAuth(next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// check if we have a cookie with out tokenName
+		tokenCookie, err := r.Cookie(tokenName)
+		switch {
+		case err == http.ErrNoCookie:
+			w.WriteHeader(http.StatusUnauthorized)
+			templates.ExecuteTemplate(w, "login.html", "Login Token ungültig, bitte einloggen")
+			return
+		case err != nil:
+			w.WriteHeader(http.StatusUnauthorized)
+			templates.ExecuteTemplate(w, "login.html", "Login Cookie ungültig, bitte einloggen")
+			return
+		}
+
+		// Check if the cookie is empty. This is not strictly necessary, as
+		// parsing should fail anyway
+		if tokenCookie.Value == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			templates.ExecuteTemplate(w, "login.html", "Login erforderlich")
+			return
+		}
+
+		// Try to validate the token. Since we only use the one private key to
+		// sign the tokens, we also only use its public counter part to verify
+		token, err := jwt.Parse(tokenCookie.Value, func(token *jwt.Token) (interface{}, error) {
+			return verifyKey, nil
+		})
+
+		// Handle possible signing errors and show messages accordingly to the user and in the application log
+		switch err.(type) {
+
+		case nil:
+			// No error occured but the token might still be invalid!
+			// Check if the token is actually valid and only show the login page agin if it's not
+
+			if !token.Valid {
+				w.WriteHeader(http.StatusUnauthorized)
+				templates.ExecuteTemplate(w, "login.html", "Session ungültig. Bitte einloggen")
+				return
+			}
+
+			// Token is valid. At this point the login is succesfull and this
+			// middleware has done it's job. Pass on to the next handler and
+			// record the login in the application log for good measure
+			log.Debugf("Login successful with token:%+v\n", token)
+			next.ServeHTTP(w, r)
+
+		case *jwt.ValidationError:
+
+			// The error has something to do with the validation process
+			vErr := err.(*jwt.ValidationError)
+
+			switch vErr.Errors {
+			case jwt.ValidationErrorExpired:
+
+				// Something went wrong during the validation process. The error
+				// might just be an expired token, so we ask the user to login
+				// again.
+				log.Info("User tried to login with expired token")
+				w.WriteHeader(http.StatusUnauthorized)
+				templates.ExecuteTemplate(w, "login.html", "Session abgelaufen. Bitte loggen Sie sich erneut ein.")
+				return
+
+			default:
+				//	If not, there is a problem with the application and we
+				// show a warning in the log. At this point the only thing the user
+				// can do, is to try to login again and hope the problem was
+				// temporary until the bug is fixed. This should not occur.
+				log.Errorf("ValidationError error: %+v\n", vErr.Errors)
+				w.WriteHeader(http.StatusInternalServerError)
+				templates.ExecuteTemplate(w, "login.html", "Ein Fehler ist beim Login aufgetreten.")
+				return
+			}
+
+		default:
+			// Something different went wrong. Log an error to and show login
+			// page again. This should not happen and means there is a bug somewhere
+			log.Errorf("Token parse error: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			templates.ExecuteTemplate(w, "login.html", "Ein Fehler ist beim Login aufgetreten.")
+			return
+		}
+	})
 }

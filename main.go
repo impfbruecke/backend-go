@@ -3,7 +3,6 @@ package main
 import (
 	jwt "github.com/dgrijalva/jwt-go"
 
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
@@ -77,84 +76,6 @@ func middlewareLog(next http.Handler) http.Handler {
 		logRequest(r)
 		next.ServeHTTP(w, r)
 	})
-}
-
-// middlewareAuth  prepended to all handlers to handle authentication
-func middlewareAuth(next http.Handler) http.Handler {
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		// check if we have a cookie with out tokenName
-		tokenCookie, err := r.Cookie(tokenName)
-		switch {
-		case err == http.ErrNoCookie:
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprintln(w, "No Token, no fun!")
-			return
-		case err != nil:
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintln(w, "Error while Parsing cookie!")
-			log.Printf("Cookie parse error: %v\n", err)
-			return
-		}
-
-		// just for the lulz, check if it is empty.. should fail on Parse anyway..
-		if tokenCookie.Value == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprintln(w, "No Token, no fun!")
-			return
-		}
-
-		// validate the token
-		token, err := jwt.Parse(tokenCookie.Value, func(token *jwt.Token) (interface{}, error) {
-			// since we only use the one private key to sign the tokens,
-			// we also only use its public counter part to verify
-			return verifyKey, nil
-		})
-
-		// branch out into the possible error from signing
-		switch err.(type) {
-
-		case nil: // no error
-
-			if !token.Valid { // but may still be invalid
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintln(w, "Invalid token!")
-				return
-			}
-
-			// see stdout and watch for the CustomUserInfo, nicely unmarshalled
-			log.Printf("Someone accessed resricted area! Token:%+v\n", token)
-			w.Header().Set("Content-Type", "text/html")
-			w.WriteHeader(http.StatusOK)
-
-			next.ServeHTTP(w, r)
-
-		case *jwt.ValidationError: // something was wrong during the validation
-			vErr := err.(*jwt.ValidationError)
-
-			switch vErr.Errors {
-			case jwt.ValidationErrorExpired:
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintln(w, "Token Expired, get a new one.")
-				return
-
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintln(w, "Error while Parsing Token!")
-				log.Printf("ValidationError error: %+v\n", vErr.Errors)
-				return
-			}
-
-		default: // something else went wrong
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintln(w, "Error while Parsing Token!")
-			log.Printf("Token parse error: %v\n", err)
-			return
-		}
-
-	})
-	// return http.HandlerFunc(restrictedHandler)
 }
 
 // read the key files before starting http handlers
