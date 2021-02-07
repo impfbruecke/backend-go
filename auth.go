@@ -28,21 +28,22 @@ type Credentials struct {
 	Username string `db:"username"`
 }
 
-// reads the form values, checks them and creates the token
+// reads the form values, checks them and creates a session
 func authHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := store.Get(r, "cookie-name")
 	if err != nil {
+		log.Warn("Could not retrieve session cookie from store")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if r.FormValue("pass") != "pass" {
-		if r.FormValue("code") == "" {
-			session.AddFlash("Must enter a code")
-		}
+
 		session.AddFlash("The code was incorrect")
+
 		err = session.Save(r, w)
 		if err != nil {
+			log.Warn("Error saving session cookie: ", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -87,7 +88,7 @@ func middlewareAuth(next http.Handler) http.Handler {
 		user := getUser(session)
 
 		if auth := user.Authenticated; !auth {
-			session.AddFlash("You don't have access!")
+			session.AddFlash("Login notwendig!")
 			err = session.Save(r, w)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
