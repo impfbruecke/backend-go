@@ -15,6 +15,7 @@ type Call struct {
 	TimeStart time.Time `db:"time_start"`
 	TimeEnd   time.Time `db:"time_end"`
 	Location  string    `db:"location"`
+	Sent      bool      `db:"sent"`
 }
 
 func parseInputTime(h, m string) (time.Time, error) {
@@ -55,6 +56,7 @@ func NewCall(data url.Values) (Call, error) {
 	call.TimeStart = timeStart
 	call.TimeEnd = timeEnd
 	call.Location = location
+	call.Sent = false
 
 	return call, nil
 

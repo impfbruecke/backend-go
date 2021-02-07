@@ -38,7 +38,11 @@
 				<td> {{.ID}} </td>
 				<td> {{.Phone}}</td>
 				<td> {{.Group}}</td>
+				{{if .LastCall.Valid }}
 				<td> {{.LastCall}}</td>
+				{{else}}
+				<td> Nicht benachrichtigt </td>
+				{{end}}
 			</tr>
 			{{end}}
 		</tbody>

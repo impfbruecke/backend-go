@@ -1,8 +1,10 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
 	"os"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -31,7 +33,8 @@ CREATE TABLE IF NOT EXISTS calls (
 	capacity INTEGER NOT NULL,
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
-	location TEXT NOT NULL
+	location TEXT NOT NULL,
+	sent INTEGER NOT NULL
 );
 `
 
@@ -76,7 +79,28 @@ func NewBridge() *Bridge {
 	log.Debug("Verifying DB schema for users")
 	db.MustExec(schemaUsers)
 
-	return &Bridge{db: db}
+	ticker := time.NewTicker(15 * time.Minute)
+	quit := make(chan struct{})
+
+	bridge := Bridge{db: db}
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				bridge.SendNotifications()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	return &bridge
+}
+
+func (b Bridge) SendNotifications() {
+	log.Debug("Timer reached, sending notifications to calls")
 }
 
 func (b *Bridge) AddCall(call Call) error {

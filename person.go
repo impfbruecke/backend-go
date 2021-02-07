@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"strconv"
+	"time"
 )
 
 type Person struct {
@@ -39,4 +41,22 @@ func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 	person.Group = group
 
 	return person, nil
+}
+
+func (p *Person) Notify(text string) error {
+
+	// TODO implement
+	// TODO send actual SMS, for now we just print to the log
+	log.Debugf("Sending SMS to: %v\n%v\n\n", p.Phone, text)
+
+	_, err := bridge.db.NamedExec(
+		`UPDATE persons SET last_notified = :last_notified WHERE
+		phone = ':phone'`,
+		map[string]interface{}{
+			"last_notified": time.Now(),
+			"phone":         p.Phone,
+		},
+	)
+
+	return err
 }
