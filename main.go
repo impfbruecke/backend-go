@@ -71,7 +71,7 @@ func main() {
 	// Handler functions to endpoints
 	router.HandleFunc("/", loginHandler)            // Login
 	router.HandleFunc("/authenticate", authHandler) // Authenticate
-	router.HandleFunc("/forbidden", forbidden)
+	router.HandleFunc("/forbidden", forbiddenHandler)
 
 	// Router for all routes under https://domain.tld/auth/ will have to pass
 	// through the authentication middleware. Put any routes here, that should

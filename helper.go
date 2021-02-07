@@ -1,7 +1,6 @@
 package main
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
@@ -54,23 +53,14 @@ func middlewareLog(next http.Handler) http.Handler {
 	})
 }
 
-func extractClaims(tokenStr string) (jwt.MapClaims, bool) {
+func contextString(key string, r *http.Request) string {
 
-	var err error
-	var token *jwt.Token
+	v := r.Context().Value(key)
+	log.Error(v)
 
-	token, err = jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		return verifyKey, nil
-	})
-
-	if err != nil {
-		log.Error(err)
-	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims, true
+	if v != nil {
+		return v.(string)
 	} else {
-		log.Printf("Invalid JWT Token")
-		return nil, false
+		return ""
 	}
 }

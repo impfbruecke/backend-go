@@ -19,7 +19,15 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		templates.ExecuteTemplate(w, "add.html", persons)
+		data := struct {
+			Data        []Person
+			CurrentUser string
+		}{
+			Data:        persons,
+			CurrentUser: contextString("current_user", r),
+		}
+
+		templates.ExecuteTemplate(w, "add.html", data)
 
 	} else if r.Method == http.MethodPost {
 

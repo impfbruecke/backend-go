@@ -24,8 +24,16 @@ func handlerStatus(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusOK)
 
+		data := struct {
+			Data        callstatus
+			CurrentUser string
+		}{
+			Data:        details,
+			CurrentUser: "someone",
+		}
+
 		// Show Call Details
-		templates.ExecuteTemplate(w, "status.html", details)
+		log.Info(templates.ExecuteTemplate(w, "status.html", data))
 	} else {
 		io.WriteString(w, "Invalid request")
 	}

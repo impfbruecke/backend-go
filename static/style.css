@@ -39,3 +39,8 @@ footer {
 	background-color: #dddddd;
 	margin: 30px;
 }
+
+.nav-right {
+	float:right;
+	color: #dddddd
+}

@@ -1,8 +1,8 @@
-{{ template "header.html" }}
+{{ template "header.html" .CurrentUser }}
 
 <div class="card">
 
-	<h1>{{.Call.Title}}</h1>
+	<h1>{{.Data.Call.Title}}</h1>
 	<h3>Ungeimpfte Zusagen</h3>
 	<table>
 		<th>
@@ -12,7 +12,7 @@
 			<td>Gruppe</td>
 			<td>Status</td>
 		</th>
-		{{range .Persons}}
+		{{range .Data.Persons}}
 		<tr>
 			<td>{{.ID}}</td>
 			<td>{{.LastCalled}}</td>
