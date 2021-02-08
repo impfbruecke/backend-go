@@ -12,23 +12,27 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-// All templates inside of ./templates and it's subfolders are parsed and can be executed by it's filename
-var templates *template.Template
-var bridge *Bridge
+var (
 
-const tokenName = "AccessToken"
+	// Instance of the main application
+	bridge *Bridge
+
+	// All templates inside of ./templates and it's subfolders are parsed and can be executed by it's filename
+	templates *template.Template
+
+	// store will hold all session data
+	store *sessions.CookieStore
+
+	// API authenticatino for twilio
+	apiUser string
+	apiPass string
+)
 
 // User holds a users account information
 type User struct {
 	Username      string
 	Authenticated bool
 }
-
-// store will hold all session data
-var store *sessions.CookieStore
-
-// tpl holds all parsed templates
-var tpl *template.Template
 
 func init() {
 
@@ -48,6 +52,10 @@ func init() {
 		log.SetLevel(log.DebugLevel)
 		log.Info("Starting in DEVEL mode")
 	}
+
+	// Show more logs if IMPF_MODE=DEVEL is set
+	apiUser = os.Getenv("IMPF_TWILIO_USER")
+	apiPass = os.Getenv("IMPF_TWILIO_PASS")
 
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")
@@ -77,6 +85,10 @@ func main() {
 	// through the authentication middleware. Put any routes here, that should
 	// be protected by user and password
 
+	subRouterAPI := router.PathPrefix("/api").Subrouter()
+	subRouterAPI.Use(middlewareApi)
+	subRouterAPI.HandleFunc("/{endpoint}", handlerApi)
+
 	subRouterAuth := router.PathPrefix("/auth").Subrouter()
 	subRouterAuth.Use(middlewareAuth)
 	subRouterAuth.HandleFunc("/call", handlerSendCall)      // Send a call
@@ -84,7 +96,6 @@ func main() {
 	subRouterAuth.HandleFunc("/active", handlerActiveCalls) // List active calls
 	subRouterAuth.HandleFunc("/add", handlerAddPerson)      // Add single person
 	subRouterAuth.HandleFunc("/upload", handlerUpload)      // CSV upload
-	subRouterAuth.HandleFunc("/api/{endpoint}", handlerApi) // Handle incoming webhooks
 
 	handler := middlewareLog(router)
 
@@ -92,4 +103,26 @@ func main() {
 	bindAddress := "localhost:12000"
 	log.Info("Starting server on: ", bindAddress)
 	log.Fatal(http.ListenAndServe(bindAddress, handler))
+}
+
+func middlewareApi(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+
+		// Check we were able to get a username and password
+		if !ok {
+			log.Error("Failed to retrieve username and password API request")
+			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			return
+		}
+
+		// Check if the match the env vars set for the application
+		if apiUser != user || apiPass != pass {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
 }
