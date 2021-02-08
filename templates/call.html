@@ -6,29 +6,38 @@
 
 <form action="/auth/call" class="pure-form" method="post">
 
-	<label for="title">Titel</label><br>
-	<input type="text" id="title" name="title" value="z.b. Ruf IZ Duisburg"><br>
 
-	<label for="capacity">Anzahl Impftermine</label><br>
-	<input type="number" id="capacity" name="capacity" value="12"><br><br>
+	<label class="label-below" for="title">Titel</label>
+	<input type="text" id="title" name="title" value="{{.DefaultTitle}}">
 
-
-	<label for="start-hour">Begin Impfung</label><br>
-	<input type="number" id="start-hour" name="start-hour" value="12">
-	<input type="number" id="start-min" name="start-min" value="15"><br><br>
+	<label class="label-below" for="capacity">Anzahl Impftermine</label>
+	<input type="number" id="capacity" name="capacity" value="{{.DefaultCapacity}}"><br><br>
 
 
-	<label for="end-hour">Ende Impfung</label><br>
-	<input type="number" id="end-hour" name="end-hour" value="16">
-	<input type="number" id="end-min" name="end-min" value="54"><br><br>
+	<h3>Begin Impfungszeit</h3>
+
+	<label class="label-below" for="start-hour">Stunde</label>
+	<input type="number" id="start-hour" name="start-hour" value="{{.DefaultStartHour}}">
+	<label class="label-below" for="start-min">Minute</label>
+	<input type="number" id="start-min" name="start-min" value="{{.DefaultStartMinute}}"><br><br>
+
+
+	<h3>Ende Impfungszeit</h3>
+	<label class="label-below" for="end-hour">Stunde</label>
+	<input type="number" id="end-hour" name="end-hour" value="{{.DefaultEndHour}}">
+	<label class="label-below" for="end-min">Minute</label>
+	<input type="number" id="end-min" name="end-min" value="{{.DefaultEndMinute}}"><br><br>
 
 
 
-	<label for="location">Standort</label><br>
-	<input type="text" id="location" name="location" value="irgendwo im nirgendwo"><br>
+	<label class="label-below" for="location">Standort</label><br>
+	<input type="text" id="location" name="location" value="{{.DefaultLocation}}"><br>
 
 	<input type="submit" value="Ruf Starten">
 </form>
+
 </div>
 
 {{ template "footer.html" }}
+
+

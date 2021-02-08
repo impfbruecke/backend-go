@@ -1,9 +1,12 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Handle endpoints. GET will usually render a html template, POST will be used
@@ -13,10 +16,31 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		// Show the "Send Call" page
 
+		startHour, startMin, _ := time.Now().Clock()
+		endHour, endMin, _ := time.Now().Add(3 * time.Hour).Clock()
+
+		if endHour < startHour {
+			endHour = 23
+		}
+
 		data := struct {
-			CurrentUser string
+			CurrentUser        string
+			DefaultCapacity    string
+			DefaultEndHour     string
+			DefaultEndMinute   string
+			DefaultLocation    string
+			DefaultStartHour   string
+			DefaultStartMinute string
+			DefaultTitle       string
 		}{
-			CurrentUser: contextString("current_user", r),
+			CurrentUser:        contextString("current_user", r),
+			DefaultTitle:       "Ruf IZ Duisburg",
+			DefaultCapacity:    "10",
+			DefaultLocation:    "Somewhere over the rainbow",
+			DefaultStartHour:   strconv.Itoa(startHour),
+			DefaultStartMinute: strconv.Itoa(startMin),
+			DefaultEndHour:     strconv.Itoa(endHour),
+			DefaultEndMinute:   strconv.Itoa(endMin),
 		}
 
 		log.Info(templates.ExecuteTemplate(w, "call.html", data))

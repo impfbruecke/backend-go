@@ -9,6 +9,7 @@
 		<li>Ort: {{.Data.Call.Location}}</li>
 	</ul>
 	<h3>Ungeimpfte Zusagen</h3>
+	{{ if .Data.Persons }}
 	<table class="pure-table">
 		<thead>
 			<tr>
@@ -17,6 +18,7 @@
 				<td>Rufnummer</td>
 				<td>Gruppe</td>
 				<td>Status</td>
+				<td></td>
 			</tr>
 		</thead>
 		<tbody>
@@ -26,11 +28,20 @@
 				<td>{{.LastCall.Value}}</td>
 				<td>{{.Phone}}</td>
 				<td>{{.Group}}</td>
+				{{if .Status }}
 				<td>geimpft</td>
+				<td> <form action="/auth/persons/toggle/{{.ID}}"> <input class="" type="submit" value="Als nicht geimpft markieren" /> </form> </td>
+				{{else}}
+				<td>nicht geimpft</td>
+				<td> <form action="/auth/persons/toggle/{{.ID}}"> <input class="" type="submit" value="Als geimpft markieren" /> </form> </td>
+				{{end}}
 			</tr>
 			{{end}}
 		</tbody>
 	</table>
+	{{else}}
+	<p>Noch keine Zusagen</p>
+	{{end}}
 
 </div>
 
