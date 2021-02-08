@@ -39,7 +39,7 @@
 				<td> {{.Phone}}</td>
 				<td> {{.Group}}</td>
 				{{if .LastCall.Valid }}
-				<td> {{.LastCall}}</td>
+				<td> {{.LastCall.Value}}</td>
 				{{else}}
 				<td> Nicht benachrichtigt </td>
 				{{end}}

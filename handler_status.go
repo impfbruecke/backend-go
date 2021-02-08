@@ -29,7 +29,7 @@ func handlerStatus(w http.ResponseWriter, r *http.Request) {
 			CurrentUser string
 		}{
 			Data:        details,
-			CurrentUser: "someone",
+			CurrentUser: contextString("current_user", r),
 		}
 
 		// Show Call Details

@@ -3,25 +3,35 @@
 <div class="card">
 
 	<h1>{{.Data.Call.Title}}</h1>
+	<ul>
+		<li>Beginn: {{.Data.Call.TimeStart}}</li>
+		<li>Ende: {{.Data.Call.TimeEnd}}</li>
+		<li>Ort: {{.Data.Call.Location}}</li>
+	</ul>
 	<h3>Ungeimpfte Zusagen</h3>
-	<table>
-		<th>
-			<td>ID</td>
-			<td>Bestätigt um</td>
-			<td>Rufnummer</td>
-			<td>Gruppe</td>
-			<td>Status</td>
-		</th>
-		{{range .Data.Persons}}
-		<tr>
-			<td>{{.ID}}</td>
-			<td>{{.LastCalled}}</td>
-			<td>{{.Phone}}</td>
-			<td>{{.Group}}</td>
-			<td>geimpft</td>
-		</tr>
-		{{end}}
+	<table class="pure-table">
+		<thead>
+			<tr>
+				<td>ID</td>
+				<td>Bestätigter Ruf</td>
+				<td>Rufnummer</td>
+				<td>Gruppe</td>
+				<td>Status</td>
+			</tr>
+		</thead>
+		<tbody>
+			{{range .Data.Persons}}
+			<tr>
+				<td>{{.ID}}</td>
+				<td>{{.LastCall.Value}}</td>
+				<td>{{.Phone}}</td>
+				<td>{{.Group}}</td>
+				<td>geimpft</td>
+			</tr>
+			{{end}}
+		</tbody>
 	</table>
+
 </div>
 
 {{ template "footer.html" }}
