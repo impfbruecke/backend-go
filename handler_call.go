@@ -47,7 +47,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 			CurrentUser: contextString("current_user", r),
 		}
 
-		templates.ExecuteTemplate(w, "success.html", data)
+		log.Info(templates.ExecuteTemplate(w, "success.html", data))
 
 	} else {
 		io.WriteString(w, "Invalid request")

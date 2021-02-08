@@ -56,7 +56,6 @@ func middlewareLog(next http.Handler) http.Handler {
 func contextString(key string, r *http.Request) string {
 
 	v := r.Context().Value(key)
-	log.Error(v)
 
 	if v != nil {
 		return v.(string)
