@@ -3,3 +3,4 @@ data.db
 app.rsa
 app.rsa.pub
 .vscode
+__debug_bin
