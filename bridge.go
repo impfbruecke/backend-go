@@ -63,6 +63,10 @@ func NewBridge() *Bridge {
 	// Open connection to database file. Will be created if it does not already
 	// exist. Exit application on errors, we can't continue without database
 	db, err := sqlx.Connect("sqlite3", dbPath)
+
+	// Only required because of a bug with sqlx and sqlite.
+	// TODO remove when migrating to postgresql if performance is too bad
+	db.SetMaxOpenConns(1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,8 +113,8 @@ func (b *Bridge) AddCall(call Call) error {
 
 	tx := b.db.MustBegin()
 	_, err := tx.NamedExec(
-		"INSERT INTO calls ( title, center_id, capacity, time_start, time_end, location) VALUES"+
-			"( :title, :center_id, :capacity, :time_start, :time_end, :location)", &call)
+		"INSERT INTO calls ( title, center_id, capacity, time_start, time_end, location, sent) VALUES"+
+			"( :title, :center_id, :capacity, :time_start, :time_end, :location, :sent)", &call)
 
 	if err != nil {
 		return err

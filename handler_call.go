@@ -39,7 +39,15 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		templates.ExecuteTemplate(w, "success.html", "Ruf erfolgreich erstellt")
+		data := struct {
+			CurrentUser string
+			Message     string
+		}{
+			Message:     "Ruf erfolgreich erstellt",
+			CurrentUser: contextString("current_user", r),
+		}
+
+		templates.ExecuteTemplate(w, "success.html", data)
 
 	} else {
 		io.WriteString(w, "Invalid request")
