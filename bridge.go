@@ -106,6 +106,50 @@ func NewBridge() *Bridge {
 
 func (b Bridge) SendNotifications() {
 	log.Debug("Timer reached, sending notifications to calls")
+
+	// Get all calls where end-time has not been reached yet
+	calls, err := b.GetActiveCalls()
+
+	if err != nil {
+		log.Error(err)
+	}
+
+	// For each call
+	for _, v := range calls {
+
+		// Check how many people have accepted
+		acceptedPersons, err := b.GetAcceptedPersons(v.ID)
+
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		// if less then capacity, send notifications
+		if v.Capacity > len(acceptedPersons) {
+			err := b.NotifyCall(v.ID, v.Capacity-len(acceptedPersons))
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}
+}
+
+func (b *Bridge) NotifyCall(id, numPersons int) error {
+	// TODO
+	persons, err := b.GetNextPersonsForCall(numPersons, id)
+
+	if err != nil {
+		return err
+	}
+
+	for k := range persons {
+		if err := persons[k].Notify(id); err != nil {
+			log.Error(err)
+		}
+	}
+
+	return nil
 }
 
 func (b *Bridge) AddCall(call Call) error {
@@ -193,8 +237,8 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 
 	// Query the database, storing results in a []User (wrapped in []interface{})
 	calls := []Call{}
-	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")
-	err := b.db.Select(&calls, "SELECT * FROM calls")
+	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")j
+	err := b.db.Select(&calls, "SELECT * FROM calls where time_end > $1", time.Now())
 
 	if err != nil {
 		log.Error(err)
@@ -203,6 +247,36 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 
 	log.Debugf("Found calls: %+v\n", calls)
 	return calls, err
+}
+
+func (b *Bridge) GetNextPersonsForCall(num, callID int) ([]Person, error) {
+
+	log.Debugf("Retrieving next persons %v for call ID: %s\n", num, callID)
+
+	persons := []Person{}
+	err := b.db.Select(&persons, "SELECT * FROM persons WHERE last_call!=$1 ORDER BY group LIMIT $2", callID, num)
+	if err != nil {
+		log.Error(err)
+		return persons, err
+	}
+
+	log.Debugf("Found persons: %+v\n", persons)
+	return persons, err
+}
+
+func (b *Bridge) GetAcceptedPersons(id int) ([]Person, error) {
+
+	log.Debugf("Retrieving accepted persons for call ID: %v\n", id)
+
+	persons := []Person{}
+	err := b.db.Select(&persons, "SELECT * FROM persons where last_call_accepted=$1", id)
+	if err != nil {
+		log.Error(err)
+		return persons, err
+	}
+
+	log.Debugf("Found persons: %+v\n", persons)
+	return persons, err
 }
 
 func (b *Bridge) GetPersons() ([]Person, error) {

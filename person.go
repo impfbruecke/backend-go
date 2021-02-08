@@ -45,11 +45,11 @@ func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 	return person, nil
 }
 
-func (p *Person) Notify(text string) error {
+func (p *Person) Notify(callID int) error {
 
 	// TODO implement
 	// TODO send actual SMS, for now we just print to the log
-	log.Debugf("Sending SMS to: %v\n%v\n\n", p.Phone, text)
+	log.Debugf("Sending SMS notification to: %v for callID %v\n\n", p.Phone, callID)
 
 	_, err := bridge.db.NamedExec(
 		`UPDATE persons SET last_notified = :last_notified WHERE
