@@ -36,7 +36,7 @@ type User struct {
 
 func init() {
 
-	store = sessions.NewCookieStore([]byte("asdaskdhasdhgsajdgasdsadksakdhasidoajsdousahdopj"))
+	store = sessions.NewCookieStore([]byte(os.Getenv("IMPF_COOKIE_SECRET")))
 
 	store.Options = &sessions.Options{
 		Path:     "/",
