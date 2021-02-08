@@ -1,14 +1,15 @@
 package main
 
 import (
+	"encoding/gob"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/gorilla/sessions"
 )
 
 // All templates inside of ./templates and it's subfolders are parsed and can be executed by it's filename
@@ -17,10 +18,29 @@ var bridge *Bridge
 
 const tokenName = "AccessToken"
 
+// User holds a users account information
+type User struct {
+	Username      string
+	Authenticated bool
+}
+
+// store will hold all session data
+var store *sessions.CookieStore
+
+// tpl holds all parsed templates
+var tpl *template.Template
+
 func init() {
-	var err error
-	var signBytes []byte
-	var verifyBytes []byte
+
+	store = sessions.NewCookieStore([]byte("asdaskdhasdhgsajdgasdsadksakdhasidoajsdousahdopj"))
+
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   60 * 15,
+		HttpOnly: true,
+	}
+
+	gob.Register(User{})
 
 	// Show more logs if IMPF_MODE=DEVEL is set
 	if os.Getenv("IMPF_MODE") == "DEVEL" {
@@ -29,30 +49,10 @@ func init() {
 		log.Info("Starting in DEVEL mode")
 	}
 
-	// location of the files used for signing and verification
-	privKeyPath := os.Getenv("IMPF_APP_KEY_PRIVATE") // openssl genrsa -out app.rsa keysize
-	pubKeyPath := os.Getenv("IMPF_APP_KEY_PUBLIC")   // openssl rsa -in app.rsa -pubout > app.rsa.pub
-
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")
 	templates = parseTemplates()
 
-	// read the key files before starting http handlers
-	if signBytes, err = ioutil.ReadFile(privKeyPath); err != nil {
-		log.Fatal(err)
-	}
-
-	if signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes); err != nil {
-		log.Fatal(err)
-	}
-
-	if verifyBytes, err = ioutil.ReadFile(pubKeyPath); err != nil {
-		log.Fatal(err)
-	}
-
-	if verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes); err != nil {
-		log.Fatal(err)
-	}
 }
 
 func main() {
@@ -71,6 +71,7 @@ func main() {
 	// Handler functions to endpoints
 	router.HandleFunc("/", loginHandler)            // Login
 	router.HandleFunc("/authenticate", authHandler) // Authenticate
+	router.HandleFunc("/forbidden", forbiddenHandler)
 
 	// Router for all routes under https://domain.tld/auth/ will have to pass
 	// through the authentication middleware. Put any routes here, that should

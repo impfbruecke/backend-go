@@ -1,23 +1,18 @@
 package main
 
 import (
-	"crypto/rsa"
+	"context"
 	"database/sql"
-	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"time"
-
-	jwt "github.com/dgrijalva/jwt-go"
+	// "crypto/rsa"
+	// "encoding/gob"
+	// "github.com/gorilla/mux"
+	// "github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
-)
-
-// keys are held in global variables
-// i havn't seen a memory corruption/info leakage in go yet
-// but maybe it's a better idea, just to store the public key in ram?
-// and load the signKey on every signing request? depends on  your usage i guess
-var (
-	verifyKey *rsa.PublicKey
-	signKey   *rsa.PrivateKey
+	"golang.org/x/crypto/bcrypt"
+	// "html/template"
+	"net/http"
+	// "time"
 )
 
 type Credentials struct {
@@ -25,96 +20,80 @@ type Credentials struct {
 	Username string `db:"username"`
 }
 
-// reads the form values, checks them and creates the token
-func authHandler(w http.ResponseWriter, r *http.Request) {
-	// make sure its post
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusBadRequest)
-		templates.ExecuteTemplate(w, "login.html", "Ungültiger Request")
-		return
-	}
+func authenticateUser(user, pass string) bool {
 
-	inputUser := r.FormValue("user")
-	inputPass := r.FormValue("pass")
+	log.Debugf("Trying to authenticate: user[%s] pass[%s]\n", user, pass)
 
-	log.Debugf("Trying to authenticate: user[%s] pass[%s]\n", inputUser, inputPass)
-
-	// Create an instance of `Credentials` to store the credentials we get from
-	// the database
+	// Create an instance of `Credentials` to store the credentials from DB
 	storedCreds := Credentials{}
 
 	// Get the existing entry present in the database for the given username
-	if err := bridge.db.Get(&storedCreds, "SELECT * FROM users WHERE username=$1", inputUser); err != nil {
+	if err := bridge.db.Get(&storedCreds, "SELECT * FROM users WHERE username=$1", user); err != nil {
 
-		// The user does not exist, just show login page
 		if err == sql.ErrNoRows {
+			log.Debug(err)
 			// User not present in the database
-			w.WriteHeader(http.StatusUnauthorized)
-			templates.ExecuteTemplate(w, "login.html", "Ungültiger Login")
+		} else {
+			// Something else went wrong. This should not happen, log and return
+			log.Error(err)
+		}
+		return false
+	}
+
+	// Compare the stored hashed password, with the received and hashed
+	// password
+	if err := bcrypt.CompareHashAndPassword([]byte(storedCreds.Password), []byte(pass)); err != nil {
+		return false
+	}
+
+	// Session is valid
+	log.Infof("Successfull authentication for user: [%s]\n", user)
+	return true
+}
+
+// reads the form values, checks them and creates a session
+func authHandler(w http.ResponseWriter, r *http.Request) {
+
+	session, err := store.Get(r, "impf-auth")
+	if err != nil {
+		log.Warn("Could not retrieve session cookie from store")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Read form values of login page
+	inputUsername := r.FormValue("user")
+	inputPassword := r.FormValue("pass")
+
+	if !authenticateUser(inputUsername, inputPassword) {
+
+		session.AddFlash("Ungültige Zugangsdaten")
+
+		err = session.Save(r, w)
+		if err != nil {
+			log.Warn("Error saving session cookie: ", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// If the error is of any other type, send a 500 status
 
-		//TODO better error handling. For now attempting to login with an user
-		//that does not exist results in a server error being displayed
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Redirect(w, r, "/forbidden", http.StatusFound)
 		return
 	}
 
-	// Compare the stored hashed password, with the hashed version of the password that was received
-	if err := bcrypt.CompareHashAndPassword([]byte(storedCreds.Password), []byte(inputPass)); err != nil {
-		// If the two passwords don't match, return a 401 status
-		w.WriteHeader(http.StatusForbidden)
-		templates.ExecuteTemplate(w, "login.html", "Ungültiger Login")
-		return
+	user := &User{
+		Username:      inputUsername,
+		Authenticated: true,
 	}
 
-	// If we reach this point, that means the users password was correct and
-	// that they are authorized. The default 200 status is sent
+	session.Values["user"] = user
 
-	// Create a signer for rsa 256
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	// Set token properties and permissions
-	token.Claims = jwt.MapClaims{
-		// Set access level in claims. This will allow to implement multiple
-		// access levels (e.g. "normal", "admin", "moderator") if needed later
-		// on. For now all users have access level 1 since there is only one
-		// user.
-
-		"AccessToken": "level1",
-		"Username":    inputUser,
-
-		// Set the expire time to one hour. After this period the token will be
-		// invalidated requiring the user to login again
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
-	}
-
-	// Sign the token. We don't expect any errors here. If the occur anyway,
-	// something went wrong. Show login again and log a warning to look into
-	// the problem
-	tokenString, err := token.SignedString(signKey)
+	err = session.Save(r, w)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		templates.ExecuteTemplate(w, "login.html", "Token Fehler")
-		log.Warnf("Token Signing error: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Storing the token in a cookie may break cross-domain API usage, but
-	// there is no need for it now and we can avoid using javascript. The calls
-	// to the API will be secured by basic auth in the reverse proxy and not by
-	// the application itself
-	http.SetCookie(w, &http.Cookie{
-		Name:       tokenName,
-		Value:      tokenString,
-		Path:       "/",
-		RawExpires: "0",
-	})
-
-	// Successful authentication. Redirect to call.html for convenience
-	http.Redirect(w, r, "/auth/call", 301)
+	http.Redirect(w, r, "/auth/call", http.StatusFound)
 }
 
 // Serve login page
@@ -127,108 +106,67 @@ func middlewareAuth(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// check if we have a cookie with out tokenName
-		tokenCookie, err := r.Cookie(tokenName)
-		switch {
-		case err == http.ErrNoCookie:
-			w.WriteHeader(http.StatusUnauthorized)
-			templates.ExecuteTemplate(w, "login.html", "Login Token ungültig, bitte einloggen")
-			return
-		case err != nil:
-			w.WriteHeader(http.StatusUnauthorized)
-			templates.ExecuteTemplate(w, "login.html", "Login Cookie ungültig, bitte einloggen")
+		session, err := store.Get(r, "impf-auth")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Check if the cookie is empty. This is not strictly necessary, as
-		// parsing should fail anyway
-		if tokenCookie.Value == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			templates.ExecuteTemplate(w, "login.html", "Login erforderlich")
-			return
-		}
+		user := getUser(session)
 
-		// Try to validate the token. Since we only use the one private key to
-		// sign the tokens, we also only use its public counter part to verify
-		token, err := jwt.Parse(tokenCookie.Value, func(token *jwt.Token) (interface{}, error) {
-			return verifyKey, nil
-		})
-
-		// Handle possible signing errors and show messages accordingly to the user and in the application log
-		switch err.(type) {
-
-		case nil:
-			// No error occured but the token might still be invalid!
-			// Check if the token is actually valid and only show the login page agin if it's not
-
-			if !token.Valid {
-				w.WriteHeader(http.StatusUnauthorized)
-				templates.ExecuteTemplate(w, "login.html", "Session ungültig. Bitte einloggen")
+		if auth := user.Authenticated; !auth {
+			session.AddFlash("Login notwendig!")
+			err = session.Save(r, w)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-
-			// Token is valid. At this point the login is succesfull and this
-			// middleware has done it's job. Pass on to the next handler and
-			// record the login in the application log for good measure
-			log.Debugf("Login successful with token:%+v\n", token)
-			next.ServeHTTP(w, r)
-
-		case *jwt.ValidationError:
-
-			// The error has something to do with the validation process
-			vErr := err.(*jwt.ValidationError)
-
-			switch vErr.Errors {
-			case jwt.ValidationErrorExpired:
-
-				// Something went wrong during the validation process. The error
-				// might just be an expired token, so we ask the user to login
-				// again.
-				log.Info("User tried to login with expired token")
-				w.WriteHeader(http.StatusUnauthorized)
-				templates.ExecuteTemplate(w, "login.html", "Session abgelaufen. Bitte loggen Sie sich erneut ein.")
-				return
-
-			default:
-				//	If not, there is a problem with the application and we
-				// show a warning in the log. At this point the only thing the user
-				// can do, is to try to login again and hope the problem was
-				// temporary until the bug is fixed. This should not occur.
-				log.Errorf("ValidationError error: %+v\n", vErr.Errors)
-				w.WriteHeader(http.StatusInternalServerError)
-				templates.ExecuteTemplate(w, "login.html", "Ein Fehler ist beim Login aufgetreten.")
-				return
-			}
-
-		default:
-			// Something different went wrong. Log an error to and show login
-			// page again. This should not happen and means there is a bug somewhere
-			log.Errorf("Token parse error: %v\n", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			templates.ExecuteTemplate(w, "login.html", "Ein Fehler ist beim Login aufgetreten.")
+			http.Redirect(w, r, "/forbidden", http.StatusFound)
 			return
 		}
+
+		// Session is valid. At this point the login is succesfull and this
+		// middleware has done it's job. Pass on to the next handler and
+		// record the login in the application log for good measure
+		log.Debugf("Login successful for user: [%v]\n", user)
+		ctx := context.WithValue(r.Context(), "current_user", user.Username)
+		next.ServeHTTP(w, r.WithContext(ctx))
+
 	})
 }
 
-// func Signup(w http.ResponseWriter, r *http.Request) {
-// 	// Parse and decode the request body into a new `Credentials` instance
-// 	creds := &Credentials{}
-// 	err := json.NewDecoder(r.Body).Decode(creds)
-// 	if err != nil {
-// 		// If there is something wrong with the request body, return a 400 status
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
-// 	// Salt and hash the password using the bcrypt algorithm
-// 	// The second argument is the cost of hashing, which we arbitrarily set as 8 (this value can be more or less, depending on the computing power you wish to utilize)
-// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), 8)
+func forbiddenHandler(w http.ResponseWriter, r *http.Request) {
+	log.Warn("forbidden reached")
 
-// 	// Next, insert the username, along with the hashed password into the database
-// 	if _, err = db.Query("insert into users values ($1, $2)", creds.Username, string(hashedPassword)); err != nil {
-// 		// If there is any issue with inserting into the database, return a 500 error
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		return
-// 	}
-// 	// We reach this point if the credentials we correctly stored in the database, and the default status of 200 is sent back
-// }
+	session, err := store.Get(r, "impf-auth")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Error("Error getting cookie: ", err)
+		return
+	}
+
+	flashMessages := session.Flashes()
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Error("Error saving cookie", err)
+		return
+	}
+
+	// tpl.ExecuteTemplate(w, "forbidden.gohtml", flashMessages)
+	// tpl.ExecuteTemplate(w, "error.html", flashMessages)
+
+	templates.ExecuteTemplate(w, "error.html", flashMessages)
+}
+
+// getUser returns a user from session s
+// on error returns an empty user
+func getUser(s *sessions.Session) User {
+	val := s.Values["user"]
+	var user = User{}
+	user, ok := val.(User)
+	if !ok {
+		return User{Authenticated: false}
+	}
+	return user
+}

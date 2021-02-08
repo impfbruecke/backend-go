@@ -12,7 +12,14 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		// Show the "Send Call" page
-		templates.ExecuteTemplate(w, "call.html", nil)
+
+		data := struct {
+			CurrentUser string
+		}{
+			CurrentUser: contextString("current_user", r),
+		}
+
+		log.Info(templates.ExecuteTemplate(w, "call.html", data))
 
 	} else if r.Method == http.MethodPost {
 
@@ -32,7 +39,15 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		templates.ExecuteTemplate(w, "success.html", "Ruf erfolgreich erstellt")
+		data := struct {
+			CurrentUser string
+			Message     string
+		}{
+			Message:     "Ruf erfolgreich erstellt",
+			CurrentUser: contextString("current_user", r),
+		}
+
+		templates.ExecuteTemplate(w, "success.html", data)
 
 	} else {
 		io.WriteString(w, "Invalid request")
@@ -49,8 +64,16 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		data := struct {
+			Data        []Call
+			CurrentUser string
+		}{
+			Data:        calls,
+			CurrentUser: contextString("current_user", r),
+		}
+
 		// Show all active calls
-		templates.ExecuteTemplate(w, "active.html", calls)
+		log.Info(templates.ExecuteTemplate(w, "active.html", data))
 
 	} else {
 		io.WriteString(w, "Invalid request")

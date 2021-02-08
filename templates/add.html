@@ -1,4 +1,4 @@
-{{ template "header.html" }}
+{{ template "header.html" .CurrentUser }}
 
 <div class="card">
 	<h2>Import Datei</h2>
@@ -33,7 +33,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{{range .}}
+			{{range .Data}}
 			<tr>
 				<td> {{.ID}} </td>
 				<td> {{.Phone}}</td>
