@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS persons (
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
 	last_call INTEGER,
+	last_call_accepted INTEGER,
 	status INTEGER NOT NULL
 );
 `
@@ -130,8 +131,8 @@ func (b *Bridge) AddPerson(person Person) error {
 
 	tx := b.db.MustBegin()
 	if _, err := tx.NamedExec(
-		"INSERT INTO persons (center_id, group_num, phone, last_call, status) VALUES "+
-			"(:center_id, :group_num, :phone, :last_call, :status)", &person); err != nil {
+		"INSERT INTO persons (center_id, group_num, phone, last_call, last_call_accepted, status) VALUES "+
+			"(:center_id, :group_num, :phone, :last_call, :last_call_accepted, :status)", &person); err != nil {
 		return err
 	}
 
@@ -148,8 +149,8 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	tx := b.db.MustBegin()
 	for k := range persons {
 		if _, err := tx.NamedExec(
-			"INSERT INTO persons (center_id, group_num, phone, last_call, status) VALUES "+
-				"(:center_id, :group_num, :phone)", &persons[k]); err != nil {
+			"INSERT INTO persons (center_id, group_num, phone, last_call, last_call_accepted, status) VALUES "+
+				"(:center_id, :group_num, :phone, :last_call, :last_call_accepted, :status)", &persons[k]); err != nil {
 			return err
 		}
 
