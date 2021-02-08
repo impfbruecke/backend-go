@@ -27,7 +27,7 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			CurrentUser: contextString("current_user", r),
 		}
 
-		templates.ExecuteTemplate(w, "add.html", data)
+		log.Info(templates.ExecuteTemplate(w, "add.html", data))
 
 	} else if r.Method == http.MethodPost {
 
@@ -66,7 +66,15 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		templates.ExecuteTemplate(w, "success.html", "Import Erfolgreich!")
+		tmpldata := struct {
+			Message     string
+			CurrentUser string
+		}{
+			Message:     "Import Erfolgreich!",
+			CurrentUser: contextString("current_user", r),
+		}
+
+		log.Info(templates.ExecuteTemplate(w, "success.html", tmpldata))
 
 	} else {
 		io.WriteString(w, "Invalid request")
