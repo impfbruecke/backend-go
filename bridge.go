@@ -337,26 +337,51 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 	return persons, err
 }
 
-func (b *Bridge) PersonAcceptCall() error {
+func (b *Bridge) PersonAcceptCall(phoneNumber string) error {
 
-	log.Debug("Accepting call")
+	log.Debugf("Accepting call for number %s\n", phoneNumber)
 
-	//TODO implement
-	return nil
+	_, err := bridge.db.NamedExec(
+		`UPDATE persons SET last_call_accepted = last_call WHERE phone=:phone`,
+		map[string]interface{}{
+			"phone": phoneNumber,
+		},
+	)
+
+	return err
 }
 
-func (b *Bridge) PersonCancelCall() error {
+func (b *Bridge) PersonCancelCall(phoneNumber string) error {
 
-	log.Debug("Cancelling call")
+	log.Debugf("Cancelling call for number %s\n", phoneNumber)
 
-	//TODO implement
-	return nil
+	_, err := bridge.db.NamedExec(
+		`UPDATE persons SET last_call_accepted = NULL WHERE phone=:phone`,
+		map[string]interface{}{
+			"phone": phoneNumber,
+		},
+	)
+
+	return err
 }
 
-func (b *Bridge) PersonDelete() error {
+func (b *Bridge) PersonDelete(phoneNumber string) error {
 
-	log.Debug("Deleting person")
+	log.Debugf("Deleting number %s\n", phoneNumber)
 
-	//TODO implement
+	m := map[string]interface{}{"phone": phoneNumber}
+	result, err := b.db.NamedExec("DELETE FROM persons WHERE phone=:phone", m)
+
+	if err != nil {
+		log.Error("Error persons: ", err)
+		return err
+	}
+
+	numrows, err := result.RowsAffected()
+	if err != nil {
+		log.Error(err)
+	}
+
+	log.Info("Number of persons deleted: ", numrows)
 	return nil
 }
