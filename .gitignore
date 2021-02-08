@@ -2,3 +2,4 @@ envfile
 data.db
 app.rsa
 app.rsa.pub
+.vscode
