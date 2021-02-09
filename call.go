@@ -1,10 +1,13 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Call struct {
@@ -19,45 +22,64 @@ type Call struct {
 }
 
 func parseInputTime(h, m string) (time.Time, error) {
-	currentDateString := time.Now().Format("2006-01-02")
-	return time.Parse(time.RFC3339, currentDateString+"T"+h+":"+m+":00Z")
+	log.Debugf("Parsing time hours: %s\nminutes:%s\n", h, m)
+	return time.Parse("15:04", h+":"+m)
 }
 
 func NewCall(data url.Values) (Call, error) {
 
-	// TODO Validate data
-
 	call := Call{}
 
-	title := data.Get("title")
-
+	// Validate capacity > 0
 	capacity, err := strconv.Atoi(data.Get("capacity"))
-	if err != nil {
+	if err != nil || capacity < 1 {
+		log.Warn("Invalid start time:", err)
 		return call, err
 	}
 
+	if capacity < 1 {
+		log.Warn("Capacity has to be at least 1")
+		return call, errors.New("Capacity should be > 0")
+	}
+
+	// Validate start and end times make sense
 	timeStart, err := parseInputTime(data.Get("start-hour"), data.Get("start-min"))
 	if err != nil {
-		log.Println("Invalid start time:", err)
+		log.Warn("Invalid start time:", err)
 		return call, err
 	}
 
 	timeEnd, err := parseInputTime(data.Get("end-hour"), data.Get("end-min"))
 	if err != nil {
-		log.Println("Invalid end time", err)
+		log.Warn("Invalid end time", err)
 		return call, err
 	}
 
+	if !timeStart.Before(timeEnd) {
+		log.Warn("Capacity has to be at least 1")
+		return call, errors.New(fmt.Sprintf("Start time %v is not before end time %v\n", timeStart.String(), timeEnd.String()))
+	}
+
+	// Validate location and title are not empty
 	location := data.Get("location")
+	if location == "" {
+		log.Warn("Invalid location")
+		return call, errors.New("Empty location now allowed")
+	}
 
-	call.Title = title
-	call.CenterID = 0 // TODO
-	call.Capacity = capacity
-	call.TimeStart = timeStart
-	call.TimeEnd = timeEnd
-	call.Location = location
-	call.Sent = false
+	title := data.Get("title")
+	if title == "" {
+		log.Warn("Invalid title")
+		return call, errors.New("Empty title now allowed")
+	}
 
-	return call, nil
-
+	return Call{
+		Title:     title,
+		CenterID:  0, //TODO set centerID from contextString
+		Capacity:  capacity,
+		TimeStart: timeStart,
+		TimeEnd:   timeEnd,
+		Location:  location,
+		Sent:      false,
+	}, nil
 }
