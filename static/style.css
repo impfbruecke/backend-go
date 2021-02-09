@@ -1,10 +1,10 @@
-
-
-
 #main-content {
 	padding-left: 10%;
 	padding-right: 10%;
-	padding-top: 100px;
+}
+
+body {
+	background-color: #dfe2e4;
 }
 
 
@@ -15,22 +15,35 @@ footer {
 	padding: 10px;
 }
 
+.navigation {
+	background-color: #3a4147;
+	  text-transform: uppercase;
+  font-weight: bold;
+}
+
 .card {
 	padding: 30px;
 	margin: 30px;
 	background: rgba(0, 0, 0, .08);
-background-blend-mode: darken;  filter: brightness(85%);
+	background-blend-mode: darken;  filter: brightness(85%);
 }
 
 .navigation_list {
-  border-bottom: solid 1px #ccc;
-  padding: 20px 10px;
-  text-align: center;
+	border-bottom: solid 1px #ccc;
+	padding: 20px 10px;
+	text-align: center;
 }
 .navigation_item {
-  display: inline;
-  list-style: none;
-  margin: 0 20px;
+	display: inline;
+	list-style: none;
+	margin: 0 20px;
 }
 
+.rev-colors {
+	background-color: #606c76;
+	color: #dfe2e4;
+}
 
+input, select, textarea{
+	color: #606c76;
+}

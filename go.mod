@@ -13,6 +13,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/sirupsen/logrus v1.7.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
-	github.com/ttacon/libphonenumber v1.1.0 // indirect
+	github.com/ttacon/libphonenumber v1.1.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 )
