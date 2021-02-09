@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/ttacon/libphonenumber"
 	"strconv"
 )
 
@@ -20,6 +22,7 @@ type Person struct {
 // single import this will just be an array with a single entry, for CSV upload
 // it may be longer.
 func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
+
 	person := Person{
 		CenterID:         centerID,
 		LastCall:         sql.NullInt64{Valid: false},
@@ -27,11 +30,14 @@ func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 		Status:           status,
 	}
 
-	// Validate that phone number is not empty
-	if phone == "" {
+	num, err := libphonenumber.Parse(phone, "DE")
+	if err != nil {
+		log.Warn("Error parsing phone number: ", phone)
 		return person, errors.New("Ungültige Rufnummer: " + phone)
 	}
-	person.Phone = phone
+
+	person.Phone = libphonenumber.Format(num, libphonenumber.E164)
+	log.Debug("parsed number: ", person.Phone)
 
 	// Validate that group number is not empty
 	if group == 0 {

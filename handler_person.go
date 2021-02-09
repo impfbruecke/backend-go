@@ -62,7 +62,7 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		if err := bridge.AddPerson(person); err != nil {
 			log.Warn(err)
 			log.Warn(person)
-			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden")
+			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden. Rufnummer schon vorhanden?")
 			return
 		}
 
