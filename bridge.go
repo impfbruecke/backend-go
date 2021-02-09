@@ -20,7 +20,7 @@ type Bridge struct {
 var schemaPersons = `
 CREATE TABLE IF NOT EXISTS persons (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	phone TEXT NOT NULL,
+	phone TEXT NOT NULL UNIQUE ON CONFLICT FAIL,
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
 	last_call INTEGER,
