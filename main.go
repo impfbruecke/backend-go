@@ -26,6 +26,8 @@ var (
 	// API authenticatino for twilio
 	apiUser string
 	apiPass string
+
+	tokenSecret string
 )
 
 // User holds a users account information
@@ -56,6 +58,7 @@ func init() {
 	// Show more logs if IMPF_MODE=DEVEL is set
 	apiUser = os.Getenv("IMPF_TWILIO_USER")
 	apiPass = os.Getenv("IMPF_TWILIO_PASS")
+	tokenSecret = os.Getenv("IMPF_TOKEN_SECRET")
 
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")

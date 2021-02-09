@@ -66,6 +66,11 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Send onboarding notificatino
+		if err := bridge.sender.SendMessageOnboarding(person.Phone); err != nil {
+			log.Error(err)
+		}
+
 		tmpldata := struct {
 			Message     string
 			CurrentUser string

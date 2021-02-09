@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,7 +13,8 @@ import (
 
 type Bridge struct {
 	// TODO handle duplicates and validate data
-	db *sqlx.DB
+	db     *sqlx.DB
+	sender *TwillioSender
 }
 
 var schemaPersons = `
@@ -84,11 +86,18 @@ func NewBridge() *Bridge {
 	log.Debug("Verifying DB schema for users")
 	db.MustExec(schemaUsers)
 
-	//TODO Change to correct interval!
+	sender := NewTwillioSender(
+		os.Getenv("IMPF_TWILIO_API_ENDPOINT"),
+		os.Getenv("IMPF_TWILIO_API_USER"),
+		os.Getenv("IMPF_TWILIO_API_PASS"),
+		os.Getenv("IMPF_TWILIO_API_FROM"),
+	)
+
+	bridge := Bridge{db: db, sender: sender}
+
+	// 15-minute timer/ticker tor periodically do stuff
 	ticker := time.NewTicker(15 * time.Minute)
 	quit := make(chan struct{})
-
-	bridge := Bridge{db: db}
 
 	go func() {
 		// Initial run when the ticker starts so we don't have to wait until
@@ -171,12 +180,19 @@ func (b *Bridge) NotifyCall(id, numPersons int) error {
 	// TODO
 	persons, err := b.GetNextPersonsForCall(numPersons, id)
 
+	call, err := b.GetCallStatus(strconv.Itoa(id))
+
 	if err != nil {
 		return err
 	}
 
 	for k := range persons {
-		if err := persons[k].Notify(id); err != nil {
+		if err := b.sender.SendMessageNotify(
+			persons[k].Phone,
+			call.Call.TimeStart.Format("14:12"),
+			call.Call.TimeEnd.Format("14:12"),
+			call.Call.Location,
+		); err != nil {
 			log.Error(err)
 		}
 	}
@@ -339,14 +355,40 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 
 func (b *Bridge) PersonAcceptCall(phoneNumber string) error {
 
-	log.Debugf("Accepting call for number %s\n", phoneNumber)
+	log.Debugf("number %s trying to accept call\n", phoneNumber)
+	var err error
 
-	_, err := bridge.db.NamedExec(
-		`UPDATE persons SET last_call_accepted = last_call WHERE phone=:phone`,
-		map[string]interface{}{
-			"phone": phoneNumber,
-		},
-	)
+	// Get the last call the person was called to
+	lastCallOfPerson := Call{}
+	err = b.db.Get(&lastCallOfPerson, "SELECT * FROM persons WHERE phone=$1", phoneNumber)
+
+	// Check if the call is full
+	acceptedPersons, err := b.GetAcceptedPersons(lastCallOfPerson.ID)
+
+	if lastCallOfPerson.Capacity > len(acceptedPersons) {
+
+		log.Debugf("Accepting number %s for call \n", phoneNumber)
+
+		if err = b.sender.SendMessageAccept(
+			phoneNumber,
+			lastCallOfPerson.TimeStart.Format("14:12"),
+			lastCallOfPerson.TimeEnd.Format("14:12"),
+			lastCallOfPerson.Location,
+			genOTP(phoneNumber, lastCallOfPerson.ID),
+		); err != nil {
+			return err
+		}
+
+		_, err = bridge.db.NamedExec(
+			`UPDATE persons SET last_call_accepted = last_call WHERE phone=:phone`,
+			map[string]interface{}{
+				"phone": phoneNumber,
+			},
+		)
+	} else {
+		log.Debugf("number %s rejected for call (is full)\n", phoneNumber)
+		b.sender.SendMessageReject(phoneNumber)
+	}
 
 	return err
 }
@@ -373,14 +415,15 @@ func (b *Bridge) PersonDelete(phoneNumber string) error {
 	result, err := b.db.NamedExec("DELETE FROM persons WHERE phone=:phone", m)
 
 	if err != nil {
-		log.Error("Error persons: ", err)
 		return err
 	}
 
 	numrows, err := result.RowsAffected()
 	if err != nil {
-		log.Error(err)
+		return err
 	}
+
+	b.sender.SendMessageDelete(phoneNumber)
 
 	log.Info("Number of persons deleted: ", numrows)
 	return nil
