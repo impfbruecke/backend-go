@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -62,4 +65,12 @@ func contextString(key string, r *http.Request) string {
 	} else {
 		return ""
 	}
+}
+
+// genOTP generates a OTP to verify the person on-site. The OTP is the first 5
+// chars of the SHA-1 hash of phonenumber+callID+tokenSecret
+func genOTP(phone string, callID int) string {
+	h := sha1.New()
+	h.Write([]byte(phone + strconv.Itoa(callID) + tokenSecret))
+	return hex.EncodeToString(h.Sum(nil))[1:5]
 }

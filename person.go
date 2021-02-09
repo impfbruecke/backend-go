@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 )
 
@@ -42,21 +41,4 @@ func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 	person.Group = group
 
 	return person, nil
-}
-
-func (p *Person) Notify(callID int) error {
-
-	// TODO implement
-	// TODO send actual SMS, for now we just print to the log
-	log.Debugf("Sending SMS notification to: %v for callID %v\n", p.Phone, callID)
-
-	_, err := bridge.db.NamedExec(
-		`UPDATE persons SET last_call = :last_call WHERE phone=:phone`,
-		map[string]interface{}{
-			"last_call": callID,
-			"phone":     p.Phone,
-		},
-	)
-
-	return err
 }
