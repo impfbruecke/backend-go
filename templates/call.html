@@ -1,43 +1,53 @@
-{{ template "header.html" .CurrentUser }}
+{{ template "header.html"  }}
 
 <div class="card">
-	
-<h1>Neuer Ruf</h1>
 
-<form action="/auth/call" class="pure-form" method="post">
+	<h1>Neuer Ruf</h1>
 
+	<form action="/auth/call" class="pure-form" method="post">
 
-	<label class="label-below" for="title">Titel</label>
-	<input type="text" id="title" name="title" value="{{.DefaultTitle}}">
+		<label class="label-below" for="title">Titel</label>
+		<input type="text" id="title" name="title" value="{{.DefaultTitle}}">
+		<label class="label-below" for="capacity">Anzahl Impftermine</label>
+		<input type="number" id="capacity" name="capacity" value="{{.DefaultCapacity}}"><br><br>
 
-	<label class="label-below" for="capacity">Anzahl Impftermine</label>
-	<input type="number" id="capacity" name="capacity" value="{{.DefaultCapacity}}"><br><br>
+		<div class="row">
 
+			<div class="column">
+				<h3>Begin Impfungszeit</h3>
+				<div class="row">
+					<div class="column">
+						<label class="label-below" for="start-hour">Stunde</label>
+						<input type="number" id="start-hour" name="start-hour" value="{{.DefaultStartHour}}">
+					</div>
+					<div class="column">
+						<label class="label-below" for="start-min">Minute</label>
+						<input type="number" id="start-min" name="start-min" value="{{.DefaultStartMinute}}"><br><br>
+					</div>
+				</div>
+			</div>
 
-	<h3>Begin Impfungszeit</h3>
+			<div class="column">
+				<h3>Ende Impfungszeit</h3>
+				<div class="row">
+					<div class="column">
+						<label class="label-below" for="end-hour">Stunde</label>
+						<input type="number" id="end-hour" name="end-hour" value="{{.DefaultEndHour}}">
+					</div>
+					<div class="column">
+						<label class="label-below" for="end-min">Minute</label>
+						<input type="number" id="end-min" name="end-min" value="{{.DefaultEndMinute}}">
+					</div>
+				</div>
 
-	<label class="label-below" for="start-hour">Stunde</label>
-	<input type="number" id="start-hour" name="start-hour" value="{{.DefaultStartHour}}">
-	<label class="label-below" for="start-min">Minute</label>
-	<input type="number" id="start-min" name="start-min" value="{{.DefaultStartMinute}}"><br><br>
+			</div>
+		</div>
 
+		<label for="location">Standort</label><br>
+		<input type="text" id="location" name="location" value="{{.DefaultLocation}}"><br>
+		<input type="submit" value="Ruf Starten">
+	</form>
 
-	<h3>Ende Impfungszeit</h3>
-	<label class="label-below" for="end-hour">Stunde</label>
-	<input type="number" id="end-hour" name="end-hour" value="{{.DefaultEndHour}}">
-	<label class="label-below" for="end-min">Minute</label>
-	<input type="number" id="end-min" name="end-min" value="{{.DefaultEndMinute}}"><br><br>
-
-
-
-	<label class="label-below" for="location">Standort</label><br>
-	<input type="text" id="location" name="location" value="{{.DefaultLocation}}"><br>
-
-	<input type="submit" value="Ruf Starten">
-</form>
-
-</div>
-
-{{ template "footer.html" }}
+	{{ template "footer.html" .CurrentUser }}
 
 

@@ -12,12 +12,18 @@
 <div class="card">
 	<h2>Import einzele Person</h2>
 	<form action="/auth/add" method="post" >
-		<label for="phone">Rufnummer</label>
-		<input type="text" id="phone" name="phone">
 
-		<label for="group">Gruppe</label>
-		<input type="number" id="group" name="group" min="1" max="10">
-		<input type="submit" class="pure-button dark" value="Hinzufügen">
+		<div class="row">
+			<div class="column">
+				<label for="phone">Rufnummer</label>
+				<input type="text" id="phone" name="phone">
+			</div>
+			<div class="column">
+				<label for="group">Imfgruppe</label>
+				<input type="number" id="group" name="group" min="1" max="10">
+			</div>
+		</div>
+				<input type="submit" class="pure-button dark" value="Hinzufügen">
 	</form>
 </div>
 

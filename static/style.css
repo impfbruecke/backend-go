@@ -1,31 +1,12 @@
-.navbar {
-	padding: 10px;
-}
 
 
-a:link {
-	color: #eeeeee;
-} /* unvisited link */
-a:visited {
-	color: #eeeeee;
-} /* visited link */
-a:hover {
-	color: #eeeeee;
-} /* mouse over link */
-a:active {
-	color: #eeeeee;
-} /* selected link */
 
 #main-content {
 	padding-left: 10%;
 	padding-right: 10%;
 	padding-top: 100px;
-	background-color: #eeeeee;
 }
-.dark {
-	color: #eeeeee;
-	background-color: #333333;
-}
+
 
 footer {
 	position: fixed;
@@ -36,11 +17,20 @@ footer {
 
 .card {
 	padding: 30px;
-	background-color: #dddddd;
 	margin: 30px;
+	background: rgba(0, 0, 0, .08);
+background-blend-mode: darken;  filter: brightness(85%);
 }
 
-.nav-right {
-	float:right;
-	color: #dddddd
+.navigation_list {
+  border-bottom: solid 1px #ccc;
+  padding: 20px 10px;
+  text-align: center;
 }
+.navigation_item {
+  display: inline;
+  list-style: none;
+  margin: 0 20px;
+}
+
+
