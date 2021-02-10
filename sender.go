@@ -40,6 +40,11 @@ func (s TwillioSender) SendMessage(msg_to, msg_body string) error {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetBasicAuth(s.user, s.token)
 
+	if disableSMS != "" {
+		log.Info("SMS sending disabled. Unset IMPF_DISABLE_SMS to enable")
+		return nil
+	}
+
 	// Execute the request
 	res, err := client.Do(r)
 	if err != nil {

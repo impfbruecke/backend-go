@@ -23,11 +23,11 @@ var (
 	// store will hold all session data
 	store *sessions.CookieStore
 
-	// API authenticatino for twilio
-	apiUser string
-	apiPass string
-
+	// API auth for twilio
+	apiUser     string
+	apiPass     string
 	tokenSecret string
+	disableSMS  string
 )
 
 // User holds a users account information
@@ -59,6 +59,7 @@ func init() {
 	apiUser = os.Getenv("IMPF_TWILIO_USER")
 	apiPass = os.Getenv("IMPF_TWILIO_PASS")
 	tokenSecret = os.Getenv("IMPF_TOKEN_SECRET")
+	disableSMS = os.Getenv("IMPF_DISABLE_SMS")
 
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")
