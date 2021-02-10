@@ -28,6 +28,7 @@ var (
 	apiPass     string
 	tokenSecret string
 	disableSMS  string
+	dbPath      string
 )
 
 // User holds a users account information
@@ -60,6 +61,12 @@ func init() {
 	apiPass = os.Getenv("IMPF_TWILIO_PASS")
 	tokenSecret = os.Getenv("IMPF_TOKEN_SECRET")
 	disableSMS = os.Getenv("IMPF_DISABLE_SMS")
+	dbPath = os.Getenv("IMPF_DB_FILE")
+
+	// Add default if not set
+	if dbPath == "" {
+		dbPath = "./data.db"
+	}
 
 	// Intial setup. Instanciate bridge and parse html templates
 	log.Info("Parsing templates")

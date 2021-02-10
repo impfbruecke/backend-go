@@ -52,17 +52,7 @@ CREATE TABLE IF NOT EXISTS users (
 func NewBridge() *Bridge {
 
 	log.Info("Creating new bridge")
-
-	// Use the path in envrionment variable if specified, default fallback to
-	// ./data.db for testing
-	dbPath := "./data.db"
-
-	// Check if path is set
-	if os.Getenv("IMPF_DB_FILE") != "" {
-		dbPath = os.Getenv("IMPF_DB_FILE")
-	}
-
-	log.Println("Using database:", dbPath)
+	log.Info("Using database:", dbPath)
 
 	// Open connection to database file. Will be created if it does not already
 	// exist. Exit application on errors, we can't continue without database
