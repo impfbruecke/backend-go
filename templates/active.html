@@ -1,4 +1,4 @@
-{{ template "header.html" .CurrentUser }}
+{{ template "header.html" . }}
 
 <div class="card">
 	<h2>Aktive Rufe</h2>
@@ -13,7 +13,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{{range .Data}}
+			{{range .Calls}}
 			<tr>
 				<td> {{.CenterID}} </td>
 				<td> {{.TimeStart.Format "15:04"}}</td>
@@ -26,4 +26,4 @@
 	</table>
 </div>
 
-{{ template "footer.html" }}
+{{ template "footer.html" . }}

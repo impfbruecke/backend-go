@@ -13,15 +13,11 @@ func handlerApi(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 
-		log.Info("FORM1:")
 		r.ParseForm()
 
 		for key, value := range r.Form {
-			log.Printf("%s = %s\n", key, value)
+			log.Debugf("%s = %s\n", key, value)
 		}
-
-		log.Info("FORM2:")
-		log.Println(r.Form)
 
 		decoder := json.NewDecoder(r.Body)
 		var t map[string]string
@@ -30,32 +26,37 @@ func handlerApi(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		log.Println("the json")
-		log.Println(t)
-		log.Println("the json end")
+		header := http.StatusOK
 
 		if phoneNumber, ok := t["number"]; ok {
-			w.WriteHeader(http.StatusOK)
 			switch mux.Vars(r)["endpoint"] {
 			case "ja":
 				if err := bridge.PersonAcceptCall(phoneNumber); err != nil {
 					log.Error(err)
+					header = http.StatusBadRequest
 				}
 			case "storno":
 				if err := bridge.PersonCancelCall(phoneNumber); err != nil {
 					log.Error(err)
+					header = http.StatusBadRequest
 				}
 			case "loeschen":
 				if err := bridge.PersonDelete(phoneNumber); err != nil {
 					log.Error(err)
+					header = http.StatusBadRequest
 				}
 			default:
 				log.Debug("Invalid request to API recieved")
 				io.WriteString(w, "Invalid request")
+				header = http.StatusBadRequest
 			}
+
+			w.WriteHeader(header)
+			return
 		}
 
 	} else {
+		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, "Invalid request")
 	}
 }

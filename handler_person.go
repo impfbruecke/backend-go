@@ -9,6 +9,10 @@ import (
 
 func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 
+	tData := TmplData{
+		CurrentUser: contextString("current_user", r),
+	}
+
 	// GET requests show import page
 	if r.Method == http.MethodGet {
 
@@ -19,15 +23,8 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := struct {
-			Data        []Person
-			CurrentUser string
-		}{
-			Data:        persons,
-			CurrentUser: contextString("current_user", r),
-		}
-
-		log.Info(templates.ExecuteTemplate(w, "add.html", data))
+		tData.Persons = persons
+		log.Info(templates.ExecuteTemplate(w, "add.html", tData))
 
 	} else if r.Method == http.MethodPost {
 
@@ -41,20 +38,23 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		groupNum, err := strconv.Atoi(group)
 
 		if err != nil {
-			templates.ExecuteTemplate(w, "error.html", "Ungültige Gruppe")
+			log.Debug(err)
+			tData.AppMessages = append(tData.AppMessages, "Ungültige Gruppe")
+			templates.ExecuteTemplate(w, "add.html", tData)
 			return
 		}
 
 		if phone == "" {
-			templates.ExecuteTemplate(w, "error.html", "Fehlende Rufnummer")
+			tData.AppMessages = append(tData.AppMessages, "Fehlende Rufnummer")
+			templates.ExecuteTemplate(w, "add.html", tData)
 			return
 		}
 
 		person, err := NewPerson(0, groupNum, phone, false)
 		if err != nil {
-			log.Info(err)
-			log.Debug(person)
-			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig")
+			log.Debug(err)
+			tData.AppMessages = append(tData.AppMessages, "Eingaben ungültig")
+			templates.ExecuteTemplate(w, "add.html", tData)
 			return
 		}
 
@@ -62,7 +62,9 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		if err := bridge.AddPerson(person); err != nil {
 			log.Warn(err)
 			log.Warn(person)
-			templates.ExecuteTemplate(w, "error.html", "Personen konnten nicht gespeichert werden. Rufnummer schon vorhanden?")
+
+			tData.AppMessages = append(tData.AppMessages, "Personen konnten nicht gespeichert werden. Rufnummer schon vorhanden?")
+			templates.ExecuteTemplate(w, "add.html", tData)
 			return
 		}
 
@@ -71,15 +73,10 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			log.Error(err)
 		}
 
-		tmpldata := struct {
-			Message     string
-			CurrentUser string
-		}{
-			Message:     "Import Erfolgreich!",
-			CurrentUser: contextString("current_user", r),
-		}
-
-		log.Info(templates.ExecuteTemplate(w, "success.html", tmpldata))
+		log.Debug("Person was added")
+		tData.AppMessageSuccess = "Import Erfolgreich!"
+		tData.CurrentUser = contextString("current_user", r)
+		log.Info(templates.ExecuteTemplate(w, "add.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")

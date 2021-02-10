@@ -10,6 +10,10 @@ import (
 
 func handlerStatus(w http.ResponseWriter, r *http.Request) {
 
+	tData := TmplData{
+		CurrentUser: contextString("current_user", r),
+	}
+
 	if r.Method == http.MethodGet {
 
 		// Get the id we want to query
@@ -23,17 +27,10 @@ func handlerStatus(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-
-		data := struct {
-			Data        callstatus
-			CurrentUser string
-		}{
-			Data:        details,
-			CurrentUser: contextString("current_user", r),
-		}
+		tData.CallStatus = details
 
 		// Show Call Details
-		log.Info(templates.ExecuteTemplate(w, "status.html", data))
+		log.Info(templates.ExecuteTemplate(w, "status.html", tData))
 	} else {
 		io.WriteString(w, "Invalid request")
 	}

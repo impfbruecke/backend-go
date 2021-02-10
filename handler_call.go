@@ -29,18 +29,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		endMin = 59
 	}
 
-	data := struct {
-		CurrentUser        string
-		DefaultCapacity    string
-		DefaultEndHour     string
-		DefaultEndMinute   string
-		DefaultLocation    string
-		DefaultStartHour   string
-		DefaultStartMinute string
-		DefaultTitle       string
-		AppMessages        []string
-		AppMessageSuccess  string
-	}{
+	tData := TmplData{
 		CurrentUser:        contextString("current_user", r),
 		DefaultTitle:       "Ruf IZ Duisburg",            // TODO add collumn to users table
 		DefaultCapacity:    "10",                         // TODO add collumn to users table
@@ -53,7 +42,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 
-		log.Info(templates.ExecuteTemplate(w, "call.html", data))
+		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
 
 	} else if r.Method == http.MethodPost {
 
@@ -62,22 +51,21 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		call, err, errStrings := NewCall(r.Form)
 		if err != nil {
 			log.Warn(err)
-			// templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig, Ruf wurde nicht erstellt")
-			data.AppMessages = errStrings
-			log.Info(templates.ExecuteTemplate(w, "call.html", data))
+			tData.AppMessages = errStrings
+			log.Info(templates.ExecuteTemplate(w, "call.html", tData))
 			return
 		}
 
 		// Add call to bridge
 		if err := bridge.AddCall(call); err != nil {
 			log.Warn(err)
-			data.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
-			templates.ExecuteTemplate(w, "call.html", data)
+			tData.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
+			templates.ExecuteTemplate(w, "call.html", tData)
 			return
 		}
 
-		data.AppMessageSuccess = "Ruf erfolgreich erstellt!"
-		log.Info(templates.ExecuteTemplate(w, "call.html", data))
+		tData.AppMessageSuccess = "Ruf erfolgreich erstellt!"
+		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")
@@ -85,6 +73,10 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
+
+	tData := TmplData{
+		CurrentUser: contextString("current_user", r),
+	}
 	if r.Method == http.MethodGet {
 
 		calls, err := bridge.GetActiveCalls()
@@ -94,16 +86,9 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := struct {
-			Data        []Call
-			CurrentUser string
-		}{
-			Data:        calls,
-			CurrentUser: contextString("current_user", r),
-		}
-
 		// Show all active calls
-		log.Info(templates.ExecuteTemplate(w, "active.html", data))
+		tData.Calls = calls
+		log.Info(templates.ExecuteTemplate(w, "active.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")

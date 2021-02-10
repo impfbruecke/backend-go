@@ -23,15 +23,15 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	// the Header and the size of the file
 	file, handler, err := r.FormFile("datei")
 	if err != nil {
-		log.Println("Error Retrieving the File: ", err)
+		log.Warn("Error Retrieving the File: ", err)
 		return
 	}
 
 	defer file.Close()
 
-	log.Printf("Uploaded File: %+v\n", handler.Filename)
-	log.Printf("File Size: %+v\n", handler.Size)
-	log.Printf("MIME Header: %+v\n", handler.Header)
+	log.Debugf("Uploaded File: %+v\n", handler.Filename)
+	log.Debugf("File Size: %+v\n", handler.Size)
+	log.Debugf("MIME Header: %+v\n", handler.Header)
 
 	csvReader := csv.NewReader(file)
 
@@ -52,7 +52,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		// Parse the group number into an integer and return on errors
 		groupNum, err := strconv.Atoi(record[1])
 		if err != nil {
-			log.Println(err)
+			log.Warn(err)
 			return
 		}
 
@@ -60,7 +60,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		// errors
 		p, err := NewPerson(0, groupNum, record[1], false)
 		if err != nil {
-			log.Println(err)
+			log.Warn(err)
 			return
 		}
 

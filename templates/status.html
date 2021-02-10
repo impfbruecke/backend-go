@@ -1,15 +1,15 @@
-{{ template "header.html" .CurrentUser }}
+{{ template "header.html" . }}
 
 <div class="card">
 
-	<h1>{{.Data.Call.Title}}</h1>
+	<h1>{{.CallStatus.Call.Title}}</h1>
 	<ul>
-		<li>Beginn: {{.Data.Call.TimeStart}}</li>
-		<li>Ende: {{.Data.Call.TimeEnd}}</li>
-		<li>Ort: {{.Data.Call.Location}}</li>
+		<li>Beginn: {{.CallStatus.Call.TimeStart}}</li>
+		<li>Ende: {{.CallStatus.Call.TimeEnd}}</li>
+		<li>Ort: {{.CallStatus.Call.Location}}</li>
 	</ul>
 	<h3>Ungeimpfte Zusagen</h3>
-	{{ if .Data.Persons }}
+	{{ if .CallStatus.Persons }}
 	<table class="pure-table">
 		<thead>
 			<tr>
@@ -22,7 +22,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{{range .Data.Persons}}
+			{{range .CallStatus.Persons}}
 			<tr>
 				<td>{{.ID}}</td>
 				<td>{{.LastCall.Value}}</td>
@@ -45,4 +45,4 @@
 
 </div>
 
-{{ template "footer.html" }}
+{{ template "footer.html" . }}

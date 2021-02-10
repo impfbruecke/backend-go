@@ -1,8 +1,7 @@
-{{ template "header.html"}}
+{{ template "header.html" .}}
 
 <div class="card">
 	<h2>Login</h2>
-	<p>{{.}}</p>
 	<form action="/authenticate" method="POST">
 		<input type="text" name="user">
 		<input type="password" name="pass">
@@ -10,4 +9,4 @@
 	</form>
 </div>
 
-{{ template "footer.html" }}
+{{ template "footer.html" . }}

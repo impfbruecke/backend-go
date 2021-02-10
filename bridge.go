@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"os"
 	"strconv"
 	"time"
@@ -225,12 +226,18 @@ func (b *Bridge) AddPerson(person Person) error {
 
 	log.Debugf("Adding person %+v\n", person)
 
+	var res sql.Result
+	var err error
+
 	tx := b.db.MustBegin()
-	if _, err := tx.NamedExec(
+	if res, err = tx.NamedExec(
 		"INSERT INTO persons (center_id, group_num, phone, last_call, last_call_accepted, status) VALUES "+
 			"(:center_id, :group_num, :phone, :last_call, :last_call_accepted, :status)", &person); err != nil {
 		return err
 	}
+
+	numrows, err := res.RowsAffected()
+	log.Debugf("Persons added: %v\n", numrows)
 
 	return tx.Commit()
 }
