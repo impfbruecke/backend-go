@@ -13,35 +13,45 @@ import (
 // for data import and specific requests
 func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
+	// Default start time is now, default end time is in 3 hours from now.
+	// If adding 3 hours to the current time results in being the next day,
+	// we just set a predefined value of 23:00 - 23:59. This will probably
+	// not happen during normal office hours, but developing at night
+	// sometimes causes unxepeted errors ;)
+
+	startHour, startMin, _ := time.Now().Clock()
+	endHour, endMin, _ := time.Now().Add(3 * time.Hour).Clock()
+
+	if endHour < startHour {
+		startMin = 0
+		startHour = 23
+		endHour = 23
+		endMin = 59
+	}
+
+	data := struct {
+		CurrentUser        string
+		DefaultCapacity    string
+		DefaultEndHour     string
+		DefaultEndMinute   string
+		DefaultLocation    string
+		DefaultStartHour   string
+		DefaultStartMinute string
+		DefaultTitle       string
+		AppMessages        []string
+		AppMessageSuccess  string
+	}{
+		CurrentUser:        contextString("current_user", r),
+		DefaultTitle:       "Ruf IZ Duisburg",            // TODO add collumn to users table
+		DefaultCapacity:    "10",                         // TODO add collumn to users table
+		DefaultLocation:    "Somewhere over the rainbow", // TODO add collumn to users table
+		DefaultStartHour:   strconv.Itoa(startHour),
+		DefaultStartMinute: strconv.Itoa(startMin),
+		DefaultEndHour:     strconv.Itoa(endHour),
+		DefaultEndMinute:   strconv.Itoa(endMin),
+	}
+
 	if r.Method == http.MethodGet {
-		// Show the "Send Call" page
-
-		startHour, startMin, _ := time.Now().Clock()
-		endHour, endMin, _ := time.Now().Add(3 * time.Hour).Clock()
-
-		if endHour < startHour {
-			endHour = 23
-		}
-
-		data := struct {
-			CurrentUser        string
-			DefaultCapacity    string
-			DefaultEndHour     string
-			DefaultEndMinute   string
-			DefaultLocation    string
-			DefaultStartHour   string
-			DefaultStartMinute string
-			DefaultTitle       string
-		}{
-			CurrentUser:        contextString("current_user", r),
-			DefaultTitle:       "Ruf IZ Duisburg",
-			DefaultCapacity:    "10",
-			DefaultLocation:    "Somewhere over the rainbow",
-			DefaultStartHour:   strconv.Itoa(startHour),
-			DefaultStartMinute: strconv.Itoa(startMin),
-			DefaultEndHour:     strconv.Itoa(endHour),
-			DefaultEndMinute:   strconv.Itoa(endMin),
-		}
 
 		log.Info(templates.ExecuteTemplate(w, "call.html", data))
 
@@ -49,29 +59,25 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 		// Try to create new call from input data
 		r.ParseForm()
-		call, err := NewCall(r.Form)
+		call, err, errStrings := NewCall(r.Form)
 		if err != nil {
 			log.Warn(err)
-			templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig, Ruf wurde nicht erstellt")
+			// templates.ExecuteTemplate(w, "error.html", "Eingaben ungültig, Ruf wurde nicht erstellt")
+			data.AppMessages = errStrings
+			log.Info(templates.ExecuteTemplate(w, "call.html", data))
 			return
 		}
 
 		// Add call to bridge
 		if err := bridge.AddCall(call); err != nil {
 			log.Warn(err)
-			templates.ExecuteTemplate(w, "error.html", "Ruf konnte nicht gespeichert werden")
+			data.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
+			templates.ExecuteTemplate(w, "call.html", data)
 			return
 		}
 
-		data := struct {
-			CurrentUser string
-			Message     string
-		}{
-			Message:     "Ruf erfolgreich erstellt",
-			CurrentUser: contextString("current_user", r),
-		}
-
-		log.Info(templates.ExecuteTemplate(w, "success.html", data))
+		data.AppMessageSuccess = "Ruf erfolgreich erstellt!"
+		log.Info(templates.ExecuteTemplate(w, "call.html", data))
 
 	} else {
 		io.WriteString(w, "Invalid request")

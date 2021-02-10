@@ -206,9 +206,12 @@ func (b *Bridge) AddCall(call Call) error {
 	log.Debugf("Adding call %+v\n", call)
 
 	tx := b.db.MustBegin()
-	_, err := tx.NamedExec(
+	res, err := tx.NamedExec(
 		"INSERT INTO calls ( title, center_id, capacity, time_start, time_end, location, sent) VALUES"+
 			"( :title, :center_id, :capacity, :time_start, :time_end, :location, :sent)", &call)
+
+	rows, _ := res.RowsAffected()
+	log.Debugf("%v rows affected\n", rows)
 
 	if err != nil {
 		return err
@@ -286,7 +289,7 @@ func (b *Bridge) GetCallStatus(id string) (callstatus, error) {
 // GetActiveCalls returns a list of active calls (time_end > now)
 func (b *Bridge) GetActiveCalls() ([]Call, error) {
 
-	log.Debug("Retrieving active calls")
+	log.Debugf("Retrieving active calls with end time before %s", time.Now())
 
 	// Query the database, storing results in a []User (wrapped in []interface{})
 	calls := []Call{}

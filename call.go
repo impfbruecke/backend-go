@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -21,56 +20,62 @@ type Call struct {
 	Sent      bool      `db:"sent"`
 }
 
-func parseInputTime(h, m string) (time.Time, error) {
-	log.Debugf("Parsing time hours: %s\nminutes:%s\n", h, m)
-	return time.Parse("15:04", h+":"+m)
+func todayAt(input string) (time.Time, error) {
+
+	now := time.Now()
+
+	year, month, day := now.Date()
+
+	tmp, err := time.Parse("15:4", input)
+	if err != nil {
+		return now, err
+	}
+
+	hour, min, _ := tmp.Clock()
+	return time.Date(year, month, day, hour, min, 0, 0, now.Location()), nil
 }
 
-func NewCall(data url.Values) (Call, error) {
+func NewCall(data url.Values) (Call, error, []string) {
 
-	call := Call{}
+	var errorStrings []string
 
 	// Validate capacity > 0
 	capacity, err := strconv.Atoi(data.Get("capacity"))
 	if err != nil || capacity < 1 {
-		log.Warn("Invalid start time:", err)
-		return call, err
-	}
-
-	if capacity < 1 {
-		log.Warn("Capacity has to be at least 1")
-		return call, errors.New("Capacity should be > 0")
+		errorStrings = append(errorStrings, "Ungültige Kapazität")
 	}
 
 	// Validate start and end times make sense
-	timeStart, err := parseInputTime(data.Get("start-hour"), data.Get("start-min"))
+	log.Debug("start-time: ", data.Get("start-time"))
+	log.Debug("end-time: ", data.Get("end-time"))
+
+	timeStart, err := todayAt(data.Get("start-time"))
 	if err != nil {
-		log.Warn("Invalid start time:", err)
-		return call, err
+		errorStrings = append(errorStrings, "Ungültige Startzeit")
 	}
 
-	timeEnd, err := parseInputTime(data.Get("end-hour"), data.Get("end-min"))
+	timeEnd, err := todayAt(data.Get("end-time"))
 	if err != nil {
-		log.Warn("Invalid end time", err)
-		return call, err
+		errorStrings = append(errorStrings, "Ungültige Endzezeit")
 	}
 
 	if !timeStart.Before(timeEnd) {
-		log.Warn("Capacity has to be at least 1")
-		return call, errors.New(fmt.Sprintf("Start time %v is not before end time %v\n", timeStart.String(), timeEnd.String()))
+		errorStrings = append(errorStrings, "Endzezeit ist nicht nach Startzeit")
 	}
 
 	// Validate location and title are not empty
 	location := data.Get("location")
 	if location == "" {
-		log.Warn("Invalid location")
-		return call, errors.New("Empty location now allowed")
+		errorStrings = append(errorStrings, "Fehlender Ort")
 	}
 
 	title := data.Get("title")
 	if title == "" {
-		log.Warn("Invalid title")
-		return call, errors.New("Empty title now allowed")
+		errorStrings = append(errorStrings, "Fehlender Titel")
+	}
+
+	if len(errorStrings) != 0 {
+		return Call{}, errors.New("Invalid data for call"), errorStrings
 	}
 
 	return Call{
@@ -81,5 +86,5 @@ func NewCall(data url.Values) (Call, error) {
 		TimeEnd:   timeEnd,
 		Location:  location,
 		Sent:      false,
-	}, nil
+	}, nil, errorStrings
 }

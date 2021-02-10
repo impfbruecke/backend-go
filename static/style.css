@@ -17,8 +17,8 @@ footer {
 
 .navigation {
 	background-color: #3a4147;
-	  text-transform: uppercase;
-  font-weight: bold;
+	text-transform: uppercase;
+	font-weight: bold;
 }
 
 .card {
@@ -46,4 +46,22 @@ footer {
 
 input, select, textarea{
 	color: #606c76;
+}
+
+.app-messages-error {
+	color: #FF6962;
+	text-transform: uppercase;
+	font-weight: bold;
+	text-align: center;
+}
+.app-message-success {
+	color: #77DD76;
+	text-transform: uppercase;
+	font-weight: bold;
+	text-align: center;
+}
+
+
+.ui-menu-item {
+	list-style-type:none;
 }
