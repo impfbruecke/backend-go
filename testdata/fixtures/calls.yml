@@ -1,0 +1,10 @@
+- id: 0
+  title: "Call number 1"
+  center_id: 0
+  capacity: 1
+  time_start: "2021-02-10 12:30:00+01:00"
+
+	time_start DATETIME NOT NULL,
+	time_end DATETIME NOT NULL,
+	location TEXT NOT NULL,
+	sent INTEGER NOT NULL
