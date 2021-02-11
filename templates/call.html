@@ -1,37 +1,6 @@
 {{ template "header.html" . }}
 
 <div class="card">
-	<script charset="utf-8">
-		function timeInFuture(hours) {
-			var now = Date.now();
-			return new Date(now + hours * 60 * 60000);
-		}
-		$(document).ready(function () {
-			$("input.timepicker-start").timepicker({
-				timeFormat: "HH:mm",
-				interval: 30,
-				minTime: "00:00",
-				maxTime: "23:59",
-				defaultTime: "now",
-				startTime: "10:00",
-				dynamic: false,
-				dropdown: true,
-				scrollbar: false,
-			});
-
-			$("input.timepicker-end").timepicker({
-				timeFormat: "HH:mm",
-				interval: 30,
-				minTime: "00:00",
-				maxTime: "23:59",
-				defaultTime: timeInFuture(4),
-				startTime: "10:00",
-				dynamic: false,
-				dropdown: true,
-				scrollbar: false,
-			});
-		});
-	</script>
 
 	<h1>Neuer Ruf</h1>
 
@@ -81,3 +50,36 @@
 	</form>
 	{{ template "footer.html" . }}
 </div>
+
+
+	<script charset="utf-8">
+		function timeInFuture(hours) {
+			var now = Date.now();
+			return new Date(now + hours * 60 * 60000);
+		}
+		$(document).ready(function () {
+			$("input.timepicker-start").timepicker({
+				timeFormat: "HH:mm",
+				interval: 30,
+				minTime: "00:00",
+				maxTime: "23:59",
+				defaultTime: "now",
+				startTime: "10:00",
+				dynamic: false,
+				dropdown: true,
+				scrollbar: false,
+			});
+
+			$("input.timepicker-end").timepicker({
+				timeFormat: "HH:mm",
+				interval: 30,
+				minTime: "00:00",
+				maxTime: "23:59",
+				defaultTime: timeInFuture(4),
+				startTime: "10:00",
+				dynamic: false,
+				dropdown: true,
+				scrollbar: false,
+			});
+		});
+	</script>
