@@ -47,7 +47,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 
-		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 
 	} else if r.Method == http.MethodPost {
 
@@ -57,7 +57,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Warn(err)
 			tData.AppMessages = errStrings
-			log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+			log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 			return
 		}
 
@@ -65,12 +65,12 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		if err := bridge.AddCall(call); err != nil {
 			log.Warn(err)
 			tData.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
-			templates.ExecuteTemplate(w, "call.html", tData)
+			templates.ExecuteTemplate(w, "newCall.html", tData)
 			return
 		}
 
 		tData.AppMessageSuccess = "Ruf erfolgreich erstellt!"
-		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")
@@ -102,7 +102,7 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
 		// Show all active calls
 		tData.Calls = calls
-		log.Info(templates.ExecuteTemplate(w, "active.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "calls.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")
