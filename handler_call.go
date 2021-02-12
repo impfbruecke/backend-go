@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -78,9 +79,18 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
+	templates = parseTemplates()
+
+	callID := mux.Vars(r)["id"]
+	details, err := bridge.GetCallStatus(callID)
 	tData := TmplData{
 		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
+
+	if err == nil {
+		tData.CallStatus = details
+	}
+
 	if r.Method == http.MethodGet {
 
 		calls, err := bridge.GetActiveCalls()
