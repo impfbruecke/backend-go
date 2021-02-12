@@ -1,85 +1,241 @@
 {{ template "header.html" . }}
 
+<style>
+	* {
+		box-sizing: border-box;
+	}
+
+	.header {
+		border: 1px solid red;
+		padding: 15px;
+	}
+
+	.menu {
+		width: 25%;
+		float: left;
+		padding: 15px;
+		border: 1px solid red;
+	}
+
+	.main {
+		width: 75%;
+		float: left;
+		padding: 15px;
+		border: 1px solid red;
+	}
+
+	.col-1 {
+		width: 8.33%;
+	}
+
+	.col-2 {
+		width: 16.66%;
+	}
+
+	.col-3 {
+		width: 25%;
+	}
+
+	.col-4 {
+		width: 33.33%;
+	}
+
+	.col-5 {
+		width: 41.66%;
+	}
+
+	.col-6 {
+		width: 50%;
+	}
+
+	.col-7 {
+		width: 58.33%;
+	}
+
+	.col-8 {
+		width: 66.66%;
+	}
+
+	.col-9 {
+		width: 75%;
+	}
+
+	.col-10 {
+		width: 83.33%;
+	}
+
+	.col-11 {
+		width: 91.66%;
+	}
+
+	.col-12 {
+		width: 100%;
+	}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #525C64;}
+
+
+</style>
+
 <div class="card">
 
 	<h1>Neuer Ruf</h1>
 
 	<form action="/auth/call" class="pure-form" method="post">
-		<label class="label-below" for="title">Titel</label>
-		<input type="text" id="title" name="title" value="{{.DefaultTitle}}" />
-		<label class="label-below" for="capacity">Anzahl Impftermine</label>
-		<input
-			type="number"
-			id="capacity"
-			name="capacity"
-			value="{{.DefaultCapacity}}"
-		/><br /><br />
 
-		<h3>Impfzeit</h3>
+
 		<div class="row">
-			<div class="column">
-				<label for="start-time">Anfang</label>
-				<input
-					id="start-time"
-					name="start-time"
-					type="text"
-					class="timepicker-start"
-					value="0"
-				/>
-			</div>
+			<div class="col-12">
+				<label class="label-below" for="title">Titel</label>
+				<input type="text" id="title" name="title" value="{{.DefaultTitle}}" />
 
-			<div class="column">
-				<label for="end-time">Ende</label>
-				<input
-					id="end-time"
-					name="end-time"
-					type="text"
-					class="timepicker-end"
-				/>
 			</div>
 		</div>
 
-		<label for="location">Standort</label><br />
-		<input
-			type="text"
-			id="location"
-			name="location"
-			value="{{.DefaultLocation}}"
-		/><br />
+		<div class="row">
+			<div class="col-4">
+				<div class="dropdown">
+					<label class="label-below" for="capacity">Impfstoff</label>
+					<button class="dropbtn">AKTUELLE AUSWAHL</button>
+					<div class="dropdown-content">
+					  <a href="#">Link 1</a>
+					  <a href="#">Link 2</a>
+					  <a href="#">Link 3</a>
+					</div>
+				  </div>
+			</div>
+			<div class="col-3">
+				<label class="label-below" for="capacity">Anzahl</label>
+				<input type="number" id="capacity" name="capacity" value="{{.DefaultCapacity}}" />
+			</div>
+			<div class="col-2">
+
+			</div>
+			<div class="col-3">
+				<label for="start-time">Anfang</label>
+				<input id="start-time" name="start-time" type="text" class="timepicker-start" value="0" />
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-9">
+			</div>
+
+			<div class="col-3">
+				<label for="end-time">Ende</label>
+				<input id="end-time" name="end-time" type="text" class="timepicker-end" />
+			</div>
+		</div>
+
+
+		<div class="row">
+			<div class="col-12">
+				<label for="location">Name</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+		</div>
+
+
+		<div class="row">
+
+			<div class="col-8">
+				<label for="location">Straße</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+
+			<div class="col-4">
+				<label for="location">Hausnummer</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+
+		</div>
+
+
+
+
+		<div class="row">
+			<div class="col-4">
+				<label for="location">Postleitzahl</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+			<div class="col-8">
+				<label for="location">Stadt</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+		</div>
+
+
+
+		<div class="row">
+			<div class="col-12">
+				<label for="location">Optional</label>
+				<input type="text" id="location" name="location" value="{{.DefaultLocation}}" />
+			</div>
+		</div>
+
 		<input type="submit" value="Ruf Starten" />
 	</form>
-	{{ template "footer.html" . }}
 </div>
 
 
-	<script charset="utf-8">
-		function timeInFuture(hours) {
-			var now = Date.now();
-			return new Date(now + hours * 60 * 60000);
-		}
-		$(document).ready(function () {
-			$("input.timepicker-start").timepicker({
-				timeFormat: "HH:mm",
-				interval: 30,
-				minTime: "00:00",
-				maxTime: "23:59",
-				defaultTime: "now",
-				startTime: "10:00",
-				dynamic: false,
-				dropdown: true,
-				scrollbar: false,
-			});
 
-			$("input.timepicker-end").timepicker({
-				timeFormat: "HH:mm",
-				interval: 30,
-				minTime: "00:00",
-				maxTime: "23:59",
-				defaultTime: timeInFuture(4),
-				startTime: "10:00",
-				dynamic: false,
-				dropdown: true,
-				scrollbar: false,
-			});
+
+{{ template "footer.html" . }}
+
+
+<script charset="utf-8">
+	function timeInFuture(hours) {
+		var now = Date.now();
+		return new Date(now + hours * 60 * 60000);
+	}
+	$(document).ready(function () {
+		$("input.timepicker-start").timepicker({
+			timeFormat: "HH:mm",
+			interval: 30,
+			minTime: "00:00",
+			maxTime: "23:59",
+			defaultTime: "now",
+			startTime: "10:00",
+			dynamic: false,
+			dropdown: true,
+			scrollbar: false,
 		});
-	</script>
+
+		$("input.timepicker-end").timepicker({
+			timeFormat: "HH:mm",
+			interval: 30,
+			minTime: "00:00",
+			maxTime: "23:59",
+			defaultTime: timeInFuture(4),
+			startTime: "10:00",
+			dynamic: false,
+			dropdown: true,
+			scrollbar: false,
+		});
+	});
+</script>
