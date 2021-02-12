@@ -23,3 +23,9 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+  coverage:
+    steps:
+    - uses: actions/checkout@master
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
