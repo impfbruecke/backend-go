@@ -34,8 +34,7 @@ CREATE TABLE IF NOT EXISTS calls (
 	capacity INTEGER NOT NULL,
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
-	location TEXT NOT NULL,
-	sent INTEGER NOT NULL
+	location TEXT NOT NULL
 );
 `
 
@@ -317,19 +316,6 @@ func (b *Bridge) GetNextPersonsForCall(num, callID int) ([]Person, error) {
 	// Get all groups
 
 	log.Debugf("Retrieving next persons %v for call ID: %v\n", num, callID)
-
-	/*
-
-		SELECT * FROM persons
-					WHERE id NOT IN (
-						SELECT id FROM invitations
-							where status NOT IN (
-								"accepted", "notified"
-							)
-							OR call_id !=$2
-						)
-					LIMIT $2
-	*/
 
 	persons := []Person{}
 	err := b.db.Select(&persons,
