@@ -31,7 +31,7 @@ func handlerApi(w http.ResponseWriter, r *http.Request) {
 		if phoneNumber, ok := t["number"]; ok {
 			switch mux.Vars(r)["endpoint"] {
 			case "ja":
-				if err := bridge.PersonAcceptCall(phoneNumber); err != nil {
+				if err := bridge.PersonAcceptLastCall(phoneNumber); err != nil {
 					log.Error(err)
 					header = http.StatusBadRequest
 				}

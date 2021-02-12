@@ -1,5 +1,18 @@
 # Impfbruecke
 
+
+![Go](https://github.com/megaclan3000/megaclan3000/workflows/Go/badge.svg)
+[![codecov](https://codecov.io/gh/impfbruecke/backend-go/branch/main/graph/badge.svg)](https://codecov.io/gh/impfbruecke/backend-go)
+[![GoDoc](https://godoc.org/github.com/impfbruecke/backend-go?status.svg)](https://godoc.org/github.com/impfbruecke/backend-go)
+[![Go Report Card](https://goreportcard.com/badge/impfbruecke/backend-go)](https://goreportcard.com/report/impfbruecke/backend-go) 
+[![HitCount](http://hits.dwyl.com/impfbruecke/backend-go.svg)](http://hits.dwyl.com/impfbruecke/backend-go)
+![golangci-lint](https://github.com/impfbruecke/backend-go/workflows/golangci-lint/badge.svg)
+[![deepcode](https://www.deepcode.ai/api/gh/badge?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF0Zm9ybTEiOiJnaCIsIm93bmVyMSI6ImltcGZicnVlY2tlIiwicmVwbzEiOiJiYWNrZW5kLWdvIiwiaW5jbHVkZUxpbnQiOmZhbHNlLCJhdXRob3JJZCI6MjIzNTgsImlhdCI6MTYxMzEzNzAyMH0.qlUMZGB22s8YstngwD50s7TBsOqHklAF-aZBKVyRl_4)](https://www.deepcode.ai/app/gh/impfbruecke/backend-go/_/dashboard?utm_content=gh%2Fimpfbruecke%2Fbackend-go)
+
+
+
+
+
 ## Endpoints
 
 ### GET /
