@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func handlerApi(w http.ResponseWriter, r *http.Request) {
+func handlerAPI(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 

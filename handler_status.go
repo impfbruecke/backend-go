@@ -11,7 +11,7 @@ import (
 func handlerStatus(w http.ResponseWriter, r *http.Request) {
 
 	tData := TmplData{
-		CurrentUser: contextString("current_user", r),
+		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
 
 	if r.Method == http.MethodGet {
