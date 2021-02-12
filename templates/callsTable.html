@@ -1,0 +1,11 @@
+
+				{{$number := .CallStatus.Call.ID}}
+				{{range .Calls}}						
+					{{ if eq .ID $number  }}
+						<div class="click-row row selected " onclick="location.href='/auth/active/{{.ID}}';"style="cursor: pointer;">
+					{{else}}
+						<div class="click-row row " onclick="location.href='/auth/active/{{.ID}}';" style="cursor: pointer;">			
+					{{end}}					
+					{{.Title}}
+					</div>
+				{{end}}	

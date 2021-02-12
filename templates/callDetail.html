@@ -1,0 +1,83 @@
+<style>
+  .callDetail {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .pure-table {
+	width: 95%;
+	padding-left: 5%;
+  }
+
+</style>
+<div class="callDetail">
+  <h2>Ruf {{.CallStatus.Call.ID}} - {{.CallStatus.Call.Title}}</h2>  
+  <div class="row">
+    <div class="col-4">{{len .CallStatus.Persons}} von CallStatus.CalledPersons Zusagen</div> <!-- TODO add CalledPersons Field-->
+    <div class="col-4">Datum: {{.CallStatus.Call.TimeStart.Format "13.01.2006"}}</div>   <!-- TODO Add CallDate Field Format  11.02.2021 -->
+	<div class="col-4">Begin: {{.CallStatus.Call.TimeStart.Format "14:09"}}</div>  <!-- TODO Format Time 14:09 -->
+    <div class="col-4">Ende: {{.CallStatus.Call.TimeEnd.Format "14:09"}}</div>     <!--  TODO Format Time 14:09-->
+  </div>
+  <br></br>
+  
+  <div class="row">
+    <div class="col-8"><h3>Zusagen</h3></div>
+    <div class="col-4">
+		<button onClick="window.location.reload();">Aktualisieren</button>		
+	</div>	
+  </div>
+
+  <div class="row">
+    <div class="col-8"></div>
+    <div class="col-4"  style="font-size: small;">
+		Letzte Aktualisierung:		
+		<p><span id="datetime"></span></p>
+		<script>
+		var dt = new Date();
+		document.getElementById("datetime").innerHTML = dt.toLocaleTimeString();
+		</script>
+	</div>	
+  </div>
+  
+  
+ <table class="pure-table">
+    <thead>
+      <tr>
+        <td>ID</td>
+        <td>Erhalten um</td>
+        <td>Rufnummer</td>
+        <td>Gruppe</td>
+        <td>Status</td>
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .CallStatus.Persons}}
+	  	<script>console.log(JSON.stringify("{{.}}")) </script>
+      	<tr>
+			<td>OTP</td>   <!-- TODO Generate-->
+			<td>10:00<!--.AnswerReceivedTime TODO--></td>        
+			<td>{{.Phone}}</td>      
+        	<td>{{.Group}}</td>
+			<td>			
+				<select>
+					{{if .Status }}  <!-- TODO ID Feld fehlt hier-->
+						<option selected="selected" value="/auth/persons/toggle/ID">geimpft</option>
+						<option  value="/auth/persons/toggle/ID">ungeimpft</option>
+					{{else}}  
+						<option  value="/auth/persons/toggle/ID">geimpft</option>
+						<option selected="selected" value="/auth/persons/toggle/ID">ungeimpft</option>
+					 <!-- TODO ID Feld fehlt hier-->
+					{{end}}
+				  </select>
+
+			</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+
+
+  <button style="position: absolute; bottom: 0;">Ruf Abschließen</button> <!-- TODO fill with life-->
+ 
+</div>
