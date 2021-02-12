@@ -32,7 +32,7 @@ func parseTemplates() *template.Template {
 	return templ
 }
 
-func contextString(key string, r *http.Request) string {
+func contextString(key contextKey, r *http.Request) string {
 
 	v := r.Context().Value(key)
 

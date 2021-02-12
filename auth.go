@@ -23,6 +23,13 @@ type ImpfUser struct {
 	Username string `db:"username"`
 }
 
+type contextKey string
+
+var (
+	// contextKeyAuthtoken = contextKey("auth-token")
+	contextKeyCurrentUser = contextKey("current_user")
+)
+
 func authenticateUser(user, pass string) bool {
 
 	log.Debugf("Trying to authenticate: user[%s] pass[%s]\n", user, pass)
@@ -132,7 +139,7 @@ func middlewareAuth(next http.Handler) http.Handler {
 		// middleware has done it's job. Pass on to the next handler and
 		// record the login in the application log for good measure
 		log.Debugf("Login successful for user: [%v]\n", user)
-		ctx := context.WithValue(r.Context(), "current_user", user.Username)
+		ctx := context.WithValue(r.Context(), contextKeyCurrentUser, user.Username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 	})
