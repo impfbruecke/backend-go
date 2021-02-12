@@ -28,7 +28,7 @@ Serves static files like css and images from the `/static` directory. Place any 
 none
 
 ### GET /call
-Show `call.html` page, which allows to create new calls
+Show `newCall.html` page, which allows to create new calls
 
 #### Parameters:
 none
@@ -52,7 +52,7 @@ Show `active.html`, which displays active calls
 none
 
 ### GET /add
-Show `add.html`, which allows to add a single person to the database
+Show `importPersons.html`, which allows to add a single person to the database
 
 #### Parameters:
 none
