@@ -32,15 +32,14 @@ func parseTemplates() *template.Template {
 	return templ
 }
 
-func contextString(key string, r *http.Request) string {
+func contextString(key contextKey, r *http.Request) string {
 
 	v := r.Context().Value(key)
 
 	if v != nil {
 		return v.(string)
-	} else {
-		return ""
 	}
+	return ""
 }
 
 // genOTP generates a OTP to verify the person on-site. The OTP is the first 5

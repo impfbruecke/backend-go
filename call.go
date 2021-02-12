@@ -9,6 +9,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Call represents a call issued by a user. It contains data on the
+// availability, times and location. Invitations will then be send out for that
+// call
 type Call struct {
 	ID        int       `db:"id"`
 	Title     string    `db:"title"`
@@ -34,7 +37,8 @@ func todayAt(input string) (time.Time, error) {
 	return time.Date(year, month, day, hour, min, 0, 0, now.Location()), nil
 }
 
-func NewCall(data url.Values) (Call, error, []string) {
+// NewCall creates a new call
+func NewCall(data url.Values) (Call, []string, error) {
 
 	var errorStrings []string
 
@@ -74,7 +78,7 @@ func NewCall(data url.Values) (Call, error, []string) {
 	}
 
 	if len(errorStrings) != 0 {
-		return Call{}, errors.New("Invalid data for call"), errorStrings
+		return Call{}, errorStrings, errors.New("Invalid data for call")
 	}
 
 	return Call{
@@ -84,5 +88,5 @@ func NewCall(data url.Values) (Call, error, []string) {
 		TimeStart: timeStart,
 		TimeEnd:   timeEnd,
 		Location:  location,
-	}, nil, errorStrings
+	}, errorStrings, nil
 }

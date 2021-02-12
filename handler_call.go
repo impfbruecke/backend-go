@@ -31,7 +31,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tData := TmplData{
-		CurrentUser:        contextString("current_user", r),
+		CurrentUser:        contextString(contextKeyCurrentUser, r),
 		DefaultTitle:       "Ruf IZ Duisburg",            // TODO add collumn to users table
 		DefaultCapacity:    "10",                         // TODO add collumn to users table
 		DefaultLocation:    "Somewhere over the rainbow", // TODO add collumn to users table
@@ -49,7 +49,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 		// Try to create new call from input data
 		r.ParseForm()
-		call, err, errStrings := NewCall(r.Form)
+		call, errStrings, err := NewCall(r.Form)
 		if err != nil {
 			log.Warn(err)
 			tData.AppMessages = errStrings
@@ -80,7 +80,7 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 	callID := mux.Vars(r)["id"]
 	details, err := bridge.GetCallStatus(callID)
 	tData := TmplData{
-		CurrentUser: contextString("current_user", r),
+		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
 
 	if err == nil {

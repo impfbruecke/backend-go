@@ -97,8 +97,8 @@ func main() {
 	// be protected by user and password
 
 	subRouterAPI := router.PathPrefix("/api").Subrouter()
-	subRouterAPI.Use(middlewareApi)
-	subRouterAPI.HandleFunc("/{endpoint}", handlerApi)
+	subRouterAPI.Use(middlewareAPI)
+	subRouterAPI.HandleFunc("/{endpoint}", handlerAPI)
 
 	subRouterAuth := router.PathPrefix("/auth").Subrouter()
 	subRouterAuth.Use(middlewareAuth)
@@ -116,7 +116,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(bindAddress, handler))
 }
 
-func middlewareApi(h http.Handler) http.Handler {
+func middlewareAPI(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
 
