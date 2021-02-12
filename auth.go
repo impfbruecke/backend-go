@@ -15,7 +15,10 @@ import (
 	// "time"
 )
 
-type Credentials struct {
+// ImpfUser is a row from the users table. It has the username and hash of the
+// password the user uses to login, aswell as the default values to populate
+// new calls
+type ImpfUser struct {
 	Password string `db:"password"`
 	Username string `db:"username"`
 }
@@ -25,7 +28,7 @@ func authenticateUser(user, pass string) bool {
 	log.Debugf("Trying to authenticate: user[%s] pass[%s]\n", user, pass)
 
 	// Create an instance of `Credentials` to store the credentials from DB
-	storedCreds := Credentials{}
+	storedCreds := ImpfUser{}
 
 	// Get the existing entry present in the database for the given username
 	if err := bridge.db.Get(&storedCreds, "SELECT * FROM users WHERE username=$1", user); err != nil {
