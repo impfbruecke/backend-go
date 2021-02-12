@@ -48,7 +48,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 		// Try to create new call from input data
 		r.ParseForm()
-		call, err, errStrings := NewCall(r.Form)
+		call, errStrings, err := NewCall(r.Form)
 		if err != nil {
 			log.Warn(err)
 			tData.AppMessages = errStrings
