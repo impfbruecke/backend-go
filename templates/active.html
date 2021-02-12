@@ -1,30 +1,52 @@
 {{ template "header.html" . }}
 
 <style>
-	.click-row:hover{
+	.click-row {
+		margin-left: 0em
+	}
+
+	.click-row:hover {
 		background-color: #cccccc;
+		margin-left: 0em
+	}
+
+	.allCalls {
+		overflow-y: scroll;
+		overflow-x: hidden;
+	}
+
+	.selected {
+		background-color: #7f1dc0;
 	}
 </style>
 
 <div class="card">
 	<h2>Ihre Rufe</h2>
+
 	<div class="row">
 		<!--LEFT-->
-		<div class="col-6">			
-			{{range .Calls}}
-			<div class="row click-row" onclick="location.href='/auth/active/{{.ID}}';" style="cursor: pointer;">
-				<div class="col-12">
-					{{.Title}}
-				</div>			
-			</div>
-			{{end}}
-		</div>
-		<!--RIGHT-->
-		<div class="col-6">
-			{{template "status.html" . }}
 
+		<div class="allCalls col-6">
+			
+			
+			
+				{{$number := .CallStatus.Call.ID}}
+				{{range .Calls}}						
+					{{ if eq .ID $number  }}
+						<div class="click-row row selected " onclick="location.href='/auth/active/{{.ID}}';"style="cursor: pointer;">
+					{{else}}
+						<div class="click-row row " onclick="location.href='/auth/active/{{.ID}}';" style="cursor: pointer;">			
+					{{end}}					
+					{{.Title}}
+					</div>
+				{{end}}	
+			</div>
+			<!--RIGHT-->
+			<div class="col-6">
+				{{template "status.html" . }}
+
+			</div>
 		</div>
 	</div>
-</div>
 
-{{ template "footer.html" . }}
+	{{ template "footer.html" . }}

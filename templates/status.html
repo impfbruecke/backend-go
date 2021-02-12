@@ -1,19 +1,26 @@
 
-<div class="card">
+<div class="callStatus">
 
-	<h1>{{.CallStatus.Call.Title}}</h1>
-	<ul>
-		<li>Beginn: {{.CallStatus.Call.TimeStart}}</li>
-		<li>Ende: {{.CallStatus.Call.TimeEnd}}</li>
-		<li>Ort: {{.CallStatus.Call.Location}}</li>
-	</ul>
-	<h3>Ungeimpfte Zusagen</h3>
-	{{ if .CallStatus.Persons }}
+	<h2>Ruf {{.CallStatus.Call.ID}} - {{.CallStatus.Call.Title}}</h2>	
+		{{len .CallStatus.Persons}} Zusagen
+		Begin: {{.CallStatus.Call.TimeStart}}
+		Ende: {{.CallStatus.Call.TimeEnd}}
+		
+	
+	
+	<h3>Zusagen</h3>
+	
+	<button>
+		Aktualisieren
+	</button>
+	
+	<script>console.log(JSON.stringify("{{.CallStatus.Persons}}"))</script>
+	
 	<table class="pure-table">
 		<thead>
 			<tr>
 				<td>ID</td>
-				<td>Bestätigter Ruf</td>
+				<td>Erhalten um</td>
 				<td>Rufnummer</td>
 				<td>Gruppe</td>
 				<td>Status</td>
@@ -24,9 +31,10 @@
 			{{range .CallStatus.Persons}}
 			<tr>
 				<td>{{.ID}}</td>
-				<td>{{.LastCall.Value}}</td>
+				<td>{{.AnswerReceived}}</td>
 				<td>{{.Phone}}</td>
 				<td>{{.Group}}</td>
+				
 				{{if .Status }}
 				<td>geimpft</td>
 				<td> <form action="/auth/persons/toggle/{{.ID}}"> <input class="" type="submit" value="Als nicht geimpft markieren" /> </form> </td>
@@ -37,9 +45,13 @@
 			</tr>
 			{{end}}
 		</tbody>
+	
+
 	</table>
-	{{else}}
-	<p>Noch keine Zusagen</p>
-	{{end}}
+
+	<button>
+		Ruf Abschließen
+	</button>
+	
 
 </div>
