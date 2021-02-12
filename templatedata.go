@@ -12,6 +12,6 @@ type TmplData struct {
 	AppMessages        []string
 	AppMessageSuccess  string
 	Calls              []Call
-	CallStatus         callstatus
+	CallStatus         CallStatus
 	Persons            []Person
 }

@@ -264,7 +264,10 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	return tx.Commit()
 }
 
-type callstatus struct {
+// CallStatus bundles a call and the persons who have accepted it for simpler
+// rendering in the html templates. TODO see if we can just replace it with the
+// existing structs
+type CallStatus struct {
 	Call    Call
 	Persons []Person
 }
@@ -272,10 +275,10 @@ type callstatus struct {
 // GetCallStatus returns the status of a call. This is used for the status
 // template to bundle information about the call and the persons that have
 // accepted it
-func (b *Bridge) GetCallStatus(id string) (callstatus, error) {
+func (b *Bridge) GetCallStatus(id string) (CallStatus, error) {
 
 	var err error
-	status := callstatus{}
+	status := CallStatus{}
 
 	//Retrieve call information
 	call := Call{}
