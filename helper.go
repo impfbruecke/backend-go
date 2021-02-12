@@ -38,9 +38,8 @@ func contextString(key contextKey, r *http.Request) string {
 
 	if v != nil {
 		return v.(string)
-	} else {
-		return ""
 	}
+	return ""
 }
 
 // genOTP generates a OTP to verify the person on-site. The OTP is the first 5
