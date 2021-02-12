@@ -85,6 +85,7 @@ func main() {
 	// Serve static files like css and images
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
+	router.HandleFunc("/favicon.ico", faviconHandler)
 	router.HandleFunc("/login", loginHandler)
 
 	// Handler functions to endpoints
@@ -114,6 +115,10 @@ func main() {
 	bindAddress := "localhost:12000"
 	log.Info("Starting server on: ", bindAddress)
 	log.Fatal(http.ListenAndServe(bindAddress, handler))
+}
+
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/favicon.ico")
 }
 
 func middlewareAPI(h http.Handler) http.Handler {
