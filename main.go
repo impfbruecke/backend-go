@@ -98,7 +98,7 @@ func main() {
 
 	subRouterAPI := router.PathPrefix("/api").Subrouter()
 	subRouterAPI.Use(middlewareApi)
-	subRouterAPI.HandleFunc("/{endpoint}", handlerApi)
+	subRouterAPI.HandleFunc("/{endpoint}", handlerAPI)
 
 	subRouterAuth := router.PathPrefix("/auth").Subrouter()
 	subRouterAuth.Use(middlewareAuth)
