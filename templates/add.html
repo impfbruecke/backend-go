@@ -32,7 +32,6 @@
 	<table class="pure-table">
 		<thead>
 			<tr>
-				<th>ID</th>
 				<th>Rufnummer</th>
 				<th>Gruppe</th>
 				<th>Letzter Ruf</th>
@@ -41,7 +40,6 @@
 		<tbody>
 			{{range .Persons}}
 			<tr>
-				<td> {{.ID}} </td>
 				<td> {{.Phone}}</td>
 				<td> {{.Group}}</td>
 				{{if .LastCall.Valid }}
