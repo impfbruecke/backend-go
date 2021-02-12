@@ -385,20 +385,21 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 	return persons, err
 }
 
-// True if the call is full
+// CallFull is true if the call is full. Used to check call status
 func (b *Bridge) CallFull(call Call) (bool, error) {
 	var numAccpets int
 	err := b.db.Get(numAccpets, "select count(id) from invitations where call_id=$1 and status='accepted'", call.ID)
 	return numAccpets >= call.Capacity, err
 }
 
-// Get the last call a person was notified to
+// LastCallNotified retrieves the last call a person was notified to
 func (b *Bridge) LastCallNotified(person Person) (Call, error) {
 	lastCallOfPerson := Call{}
 	err := b.db.Get(&lastCallOfPerson, "select calls.* from calls join invitations where invitations.phone=$1 and invitations.status = \"accepted\" order by invitations.time desc limit 1", person.Phone)
 	return lastCallOfPerson, err
 }
 
+// PersonAcceptLastCall retrieves the last call a person has accepted
 func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 
 	// "update invitations set status = \"accepted\" where phone=$1 and id in ( select id from ( select id from invitations order by time desc limit 1) tmp )", phoneNumber)
@@ -445,6 +446,7 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 	return err
 }
 
+// PersonCancelCall cancels the last call a person was invited to
 func (b *Bridge) PersonCancelCall(phoneNumber string) error {
 
 	log.Debugf("Cancelling call for number %s\n", phoneNumber)
@@ -459,6 +461,9 @@ func (b *Bridge) PersonCancelCall(phoneNumber string) error {
 	return err
 }
 
+// PersonDelete removes a person from the imported data
+// TODO we shoud keep some kind of reference of the person, so that it won't be
+// reimported
 func (b *Bridge) PersonDelete(phoneNumber string) error {
 
 	log.Debugf("Deleting number %s\n", phoneNumber)
