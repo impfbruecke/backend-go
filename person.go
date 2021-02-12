@@ -7,6 +7,9 @@ import (
 	"strconv"
 )
 
+// Person represents a person that has been imported to be notified for calls.
+// It includes the phone number aswell as the user id that imported information
+// about the Person itself
 type Person struct {
 	Phone    string `db:"phone"`     // Telephone number
 	CenterID int    `db:"center_id"` // ID of center that added this person
