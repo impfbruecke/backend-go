@@ -90,7 +90,7 @@ TODO
 
 
 ## Twilio
-Twilio Nummer:  +49 1573 5984785
+Twilio Nummer:  +49 xxx xxxxxxxx
 
 
 Hab Twilio aufgesetzt:
@@ -119,7 +119,7 @@ Der Weg um SMS zu senden läuft auch über eine REST API
 
 https://www.twilio.com/docs/studio/rest-api
 
-Endpoint ist ein POST auf "https://studio.twilio.com/v2/Flows/FWa50a95a66d8639edd72ca466b3dfba32/Executions" mit den Parametern "To" und "From"  und Parameters=json
+Endpoint ist ein POST auf "https://studio.twilio.com/v2/Flows/Sid/Executions" mit den Parametern "To" und "From"  und Parameters=json
 
 folgende ausgehende SMS sind möglich:
 
