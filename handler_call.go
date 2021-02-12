@@ -30,14 +30,18 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tData := TmplData{
-		CurrentUser:        contextString(contextKeyCurrentUser, r),
-		DefaultTitle:       "Ruf IZ Duisburg",            // TODO add collumn to users table
-		DefaultCapacity:    "10",                         // TODO add collumn to users table
-		DefaultLocation:    "Somewhere over the rainbow", // TODO add collumn to users table
-		DefaultStartHour:   strconv.Itoa(startHour),
-		DefaultStartMinute: strconv.Itoa(startMin),
-		DefaultEndHour:     strconv.Itoa(endHour),
-		DefaultEndMinute:   strconv.Itoa(endMin),
+		CurrentUser:           contextString(contextKeyCurrentUser, r),
+		DefaultTitle:          "IZ Duisburg",                 // TODO add collumn to users table
+		DefaultCapacity:       "10",                          // TODO add collumn to users table
+		DefaultLocationName:   "Impfzentrum Duisburg am TAM", // TODO add collumn to users table
+		DefaultLocationStreet: "Plessingstraße",              // TODO add collumn to users table
+		DefaultHouseNumber:    "20",                          // TODO add collumn to users table
+		DefaultPostCode:       "47051",                       // TODO add collumn to users table
+		DefaultCity:           "Duisburg",                    // TODO add collumn to users table
+		DefaultStartHour:      strconv.Itoa(startHour),
+		DefaultStartMinute:    strconv.Itoa(startMin),
+		DefaultEndHour:        strconv.Itoa(endHour),
+		DefaultEndMinute:      strconv.Itoa(endMin),
 	}
 
 	if r.Method == http.MethodGet {
