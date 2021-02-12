@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS invitations (
 );
 `
 
+// NewBridge creates a new instance of the bridge using predifined parameters
+// from env vars, global vars and/or defaults
 func NewBridge() *Bridge {
 
 	log.Info("Creating new bridge")
