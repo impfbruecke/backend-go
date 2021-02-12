@@ -1,5 +1,10 @@
 # Impfbruecke
 
+
+[![tests](https://github.com/impfbruecke/backend-go/workflows/Go/badge.svg)
+[![codecov](https://codecov.io/gh/impfbruecke/backend-go/branch/main/graph/badge.svg)](https://codecov.io/gh/impfbruecke/backend-go)
+
+
 ## Endpoints
 
 ### GET /
