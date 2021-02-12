@@ -1,29 +1,30 @@
 {{ template "header.html" . }}
 
+<style>
+	.click-row:hover{
+		background-color: #cccccc;
+	}
+</style>
+
 <div class="card">
-	<h2>Aktive Rufe</h2>
-	<table class="pure-table">
-		<thead>
-			<tr>
-				<th>Titel</th>
-				<th>Beginnt um</th>
-				<th>Endet um</th>
-				<th>Ort</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
+	<h2>Ihre Rufe</h2>
+	<div class="row">
+		<!--LEFT-->
+		<div class="col-6">			
 			{{range .Calls}}
-			<tr>
-				<td> {{.CenterID}} </td>
-				<td> {{.TimeStart.Format "15:04"}}</td>
-				<td> {{.TimeEnd.Format "15:04"}}</td>
-				<td> {{.Location}}</td>
-				<td> <form action="/auth/call/{{.ID}}"> <input class="" type="submit" value="Details" /> </form> </td>
-			</tr>
+			<div class="row click-row" onclick="location.href='/auth/active/{{.ID}}';" style="cursor: pointer;">
+				<div class="col-12">
+					{{.Title}}
+				</div>			
+			</div>
 			{{end}}
-		</tbody>
-	</table>
+		</div>
+		<!--RIGHT-->
+		<div class="col-6">
+			{{template "status.html" . }}
+
+		</div>
+	</div>
 </div>
 
 {{ template "footer.html" . }}
