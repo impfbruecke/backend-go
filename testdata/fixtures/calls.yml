@@ -1,0 +1,15 @@
+- id: 1
+  title: "Call number 1"
+  center_id: 0
+  capacity: 1
+  time_start: "2021-02-10 12:30:00+01:00"
+  time_end: "2021-02-10 12:35:00+01:00"
+  location: "somewhere1"
+
+- id: 2
+  title: "Call number 2"
+  center_id: 0
+  capacity: 2
+  time_start: "2021-02-10 12:31:00+01:00"
+  time_end: "2021-02-10 12:36:00+01:00"
+  location: "somewhere2"

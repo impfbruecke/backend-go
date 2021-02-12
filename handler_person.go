@@ -10,7 +10,7 @@ import (
 func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 
 	tData := TmplData{
-		CurrentUser: contextString("current_user", r),
+		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
 
 	// GET requests show import page
@@ -75,7 +75,7 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 
 		log.Debug("Person was added")
 		tData.AppMessageSuccess = "Import Erfolgreich!"
-		tData.CurrentUser = contextString("current_user", r)
+		tData.CurrentUser = contextString(contextKeyCurrentUser, r)
 		log.Info(templates.ExecuteTemplate(w, "add.html", tData))
 
 	} else {

@@ -1,21 +1,20 @@
 package main
 
 import (
-	"database/sql"
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/ttacon/libphonenumber"
 	"strconv"
 )
 
+// Person represents a person that has been imported to be notified for calls.
+// It includes the phone number aswell as the user id that imported information
+// about the Person itself
 type Person struct {
-	ID               int           `db:"id"`                 // Internal ID of the person, created by DB
-	CenterID         int           `db:"center_id"`          // ID of center that added this person
-	Group            int           `db:"group_num"`          // Vaccination group
-	Phone            string        `db:"phone"`              // Telephone number
-	LastCall         sql.NullInt64 `db:"last_call"`          // ID of last call the person was called to
-	LastCallAccepted sql.NullInt64 `db:"last_call_accepted"` // ID of last call the person has accepted
-	Status           bool          `db:"status"`             // Vaccination status
+	Phone    string `db:"phone"`     // Telephone number
+	CenterID int    `db:"center_id"` // ID of center that added this person
+	Group    int    `db:"group_num"` // Vaccination group
+	Status   bool   `db:"status"`    // Vaccination status
 }
 
 // NewPerson receives the input data and returns a slice of person objects. For
@@ -24,10 +23,8 @@ type Person struct {
 func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
 
 	person := Person{
-		CenterID:         centerID,
-		LastCall:         sql.NullInt64{Valid: false},
-		LastCallAccepted: sql.NullInt64{Valid: false},
-		Status:           status,
+		CenterID: centerID,
+		Status:   status,
 	}
 
 	num, err := libphonenumber.Parse(phone, "DE")
