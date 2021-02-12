@@ -12,6 +12,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Bridge is the main struct of the application. It abstracts the connection to
+// the database and twilio providing methods to act on both
 type Bridge struct {
 	// TODO handle duplicates and validate data
 	db     *sqlx.DB
