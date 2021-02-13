@@ -21,6 +21,8 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
+	os.Setenv("DE", "Europe/Berlin")
+
 	if _, err := os.Stat("./test.db"); err == nil {
 		// Old DB exists, try to remove it
 		fmt.Println("Removing old testDB")
