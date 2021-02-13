@@ -46,6 +46,9 @@ func contextString(key contextKey, r *http.Request) string {
 // chars of the SHA-1 hash of phonenumber+callID+tokenSecret
 func genOTP(phone string, callID int) string {
 	h := sha1.New()
-	h.Write([]byte(phone + strconv.Itoa(callID) + tokenSecret))
+	// Firt value are written bytes, we only care about the error if any
+	if _, err := h.Write([]byte(phone + strconv.Itoa(callID) + tokenSecret)); err != nil {
+		log.Error(err)
+	}
 	return hex.EncodeToString(h.Sum(nil))[1:5]
 }

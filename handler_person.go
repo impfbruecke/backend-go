@@ -20,17 +20,27 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		persons, err := bridge.GetPersons()
 		if err != nil {
 			log.Warn(err)
-			io.WriteString(w, "Failed to retrieve persons")
+			if _, err := io.WriteString(w, "Failed to retrieve persons"); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		tData.Persons = persons
-		log.Info(templates.ExecuteTemplate(w, "importPersons.html", tData))
+		if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+			log.Error(err)
+		}
 
 	} else if r.Method == http.MethodPost {
 
-		// TODO validate data, ignore empty
-		r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+			tData.AppMessages = append(tData.AppMessages, "Ungültige Eingaben")
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
+			return
+		}
+
 		data := r.Form
 		phone := data.Get("phone")
 		group := data.Get("group")
@@ -41,13 +51,17 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Debug(err)
 			tData.AppMessages = append(tData.AppMessages, "Ungültige Gruppe")
-			templates.ExecuteTemplate(w, "importPersons.html", tData)
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		if phone == "" {
 			tData.AppMessages = append(tData.AppMessages, "Fehlende Rufnummer")
-			templates.ExecuteTemplate(w, "importPersons.html", tData)
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
@@ -55,7 +69,9 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Debug(err)
 			tData.AppMessages = append(tData.AppMessages, "Eingaben ungültig")
-			templates.ExecuteTemplate(w, "importPersons.html", tData)
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
@@ -65,7 +81,9 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			log.Warn(person)
 
 			tData.AppMessages = append(tData.AppMessages, "Personen konnten nicht gespeichert werden. Rufnummer schon vorhanden?")
-			templates.ExecuteTemplate(w, "importPersons.html", tData)
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
@@ -77,9 +95,13 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		log.Debug("Person was added")
 		tData.AppMessageSuccess = "Import Erfolgreich!"
 		tData.CurrentUser = contextString(contextKeyCurrentUser, r)
-		log.Info(templates.ExecuteTemplate(w, "importPersons.html", tData))
+		if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+			log.Error(err)
+		}
 
 	} else {
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 	}
 }

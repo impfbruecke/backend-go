@@ -13,7 +13,10 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 
-		r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+			log.Error(err)
+			return
+		}
 
 		for key, value := range r.Form {
 			log.Debugf("%s = %s\n", key, value)
@@ -23,7 +26,8 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 		var t map[string]string
 		err := decoder.Decode(&t)
 		if err != nil {
-			panic(err)
+			log.Error(err)
+			return
 		}
 
 		header := http.StatusOK
@@ -47,8 +51,10 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 				}
 			default:
 				log.Debug("Invalid request to API recieved")
-				io.WriteString(w, "Invalid request")
 				header = http.StatusBadRequest
+				if _, err := io.WriteString(w, "Invalid request"); err != nil {
+					log.Error(err)
+				}
 			}
 
 			w.WriteHeader(header)
@@ -57,6 +63,8 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 	}
 }

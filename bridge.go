@@ -182,9 +182,17 @@ func (b Bridge) SendNotifications() {
 // if there are no persons to notify left
 func (b *Bridge) NotifyCall(id, numPersons int) error {
 	// TODO
-	persons, err := b.GetNextPersonsForCall(numPersons, id)
+	var err error
+	var persons []Person
+	var call CallStatus
 
-	call, err := b.GetCallStatus(strconv.Itoa(id))
+	if persons, err = b.GetNextPersonsForCall(numPersons, id); err != nil {
+		return err
+	}
+
+	if call, err = b.GetCallStatus(strconv.Itoa(id)); err != nil {
+		return err
+	}
 
 	if err != nil {
 		return err
@@ -239,8 +247,11 @@ func (b *Bridge) AddPerson(person Person) error {
 		return err
 	}
 
-	numrows, err := res.RowsAffected()
-	log.Debugf("Persons added: %v\n", numrows)
+	if numrows, err := res.RowsAffected(); err != nil {
+		return err
+	} else {
+		log.Debugf("Persons will be added: %v\n", numrows)
+	}
 
 	return tx.Commit()
 }
@@ -420,7 +431,9 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 
 	if isFull {
 		log.Debugf("number %s rejected for call (is full)\n", phoneNumber)
-		b.sender.SendMessageReject(phoneNumber)
+		if err := b.sender.SendMessageReject(phoneNumber); err != nil {
+			log.Error(err)
+		}
 	} else {
 
 		log.Debugf("Accepting number %s for call \n", phoneNumber)
@@ -481,7 +494,9 @@ func (b *Bridge) PersonDelete(phoneNumber string) error {
 		return err
 	}
 
-	b.sender.SendMessageDelete(phoneNumber)
+	if err := b.sender.SendMessageDelete(phoneNumber); err != nil {
+		return err
+	}
 
 	log.Info("Number of persons deleted: ", numrows)
 	return nil
