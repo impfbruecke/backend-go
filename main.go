@@ -102,11 +102,11 @@ func main() {
 
 	subRouterAuth := router.PathPrefix("/auth").Subrouter()
 	subRouterAuth.Use(middlewareAuth)
-	subRouterAuth.HandleFunc("/call", handlerSendCall)           // Send a call
-	subRouterAuth.HandleFunc("/active/{id}", handlerActiveCalls) // Get call details
-	subRouterAuth.HandleFunc("/active", handlerActiveCalls)      // List active calls
-	subRouterAuth.HandleFunc("/add", handlerAddPerson)           // Add single person
-	subRouterAuth.HandleFunc("/upload", handlerUpload)           // CSV upload
+	subRouterAuth.HandleFunc("/call", handlerSendCall)      // Send a call
+	subRouterAuth.HandleFunc("/call/{id}", handlerStatus)   // Get call details
+	subRouterAuth.HandleFunc("/active", handlerActiveCalls) // List active calls
+	subRouterAuth.HandleFunc("/add", handlerAddPerson)      // Add single person
+	subRouterAuth.HandleFunc("/upload", handlerUpload)      // CSV upload
 
 	handler := middlewareLog(router)
 
