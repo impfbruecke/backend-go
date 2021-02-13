@@ -15,12 +15,17 @@
 {{if .CallStatus.Call.ID}}
 
 <div class="callDetail">
-  <h2>Ruf {{.CallStatus.Call.ID}} - {{.CallStatus.Call.Title}}</h2>  
+  
+  
+  
+  <h2> Ruf {{.CallStatus.Call.ID}} - {{.CallStatus.Call.Title}}</h2>  
+  
   <div class="row">
-    <div class="column column-25">{{len .CallStatus.Persons}} von CallStatus.CalledPersons Zusagen</div> <!-- TODO add CalledPersons Field-->
-    <div class="column column-25">Datum: {{.CallStatus.Call.TimeStart.Format "13.01.2006"}}</div>   <!-- TODO Add CallDate Field Format  11.02.2021 -->
-	<div class="column column-25">Begin: {{.CallStatus.Call.TimeStart.Format "14:09"}}</div>  <!-- TODO Format Time 14:09 -->
-    <div class="column column-25">Ende: {{.CallStatus.Call.TimeEnd.Format "14:09"}}</div>     <!--  TODO Format Time 14:09-->
+    <div class="column column-20">Impfstoff: PLACEHOLDER</div> <!-- TODO add Vaccine Field-->
+    <div class="column column-20">{{len .CallStatus.Persons}} von {{.CallStatus.Call.Capacity}} Zusagen</div> <!-- TODO add CalledPersons Field-->
+    <div class="column column-20">Datum: {{.CallStatus.Call.TimeStart.Format "13.01.2006"}}</div>   <!-- TODO Add CallDate Field Format  11.02.2021 -->
+	  <div class="column column-20">Begin: {{.CallStatus.Call.TimeStart.Format "14:09"}}</div>  <!-- TODO Format Time 14:09 -->
+    <div class="column column-20">Ende: {{.CallStatus.Call.TimeEnd.Format "14:09"}}</div>     <!--  TODO Format Time 14:09-->
   </div>
   <br></br>
   
@@ -151,7 +156,10 @@
       }
     }
     </script>
-
+ <div class="row" >
+  <blockquote>
+    Wird ein Ruf abgeschlossen, werden keine neuen Personen mehr informiert. Ein Ruf wird automatisch nach Ablauf der Endzeit geschlossen.  </blockquote>
+</div>
   <button style="position: absolute; bottom: 0;">Ruf Abschließen</button> <!-- TODO fill with life-->
  {{else}}
  <h2>Kein Ruf ausgewählt</h2>  
