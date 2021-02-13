@@ -2,11 +2,26 @@
 
 <div class="card">
 	<h2>Login</h2>
-	<form action="/authenticate" method="POST">
-		<input type="text" name="user">
-		<input type="password" name="pass">
-		<input type="submit">
-	</form>
+
+	<div class= "row"> 
+			<div class=column column-25>
+
+			</div>			
+			<div class=column column-50>
+				<form action="/authenticate" method="POST">
+					<input type="text" name="user" autofocus>
+					<input type="password" name="pass">
+					<input type="submit" value="Login"></form>
+				</form>
+			</div>
+
+			<div class=column column-25>
+				
+			</div>
+
+
+	</div>
+	
 </div>
 
 {{ template "footer.html" . }}
