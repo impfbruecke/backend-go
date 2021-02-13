@@ -79,8 +79,6 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
-	templates = parseTemplates()
-
 	callID := mux.Vars(r)["id"]
 	details, err := bridge.GetCallStatus(callID)
 	tData := TmplData{
