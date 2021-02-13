@@ -174,7 +174,6 @@ func forbiddenHandler(w http.ResponseWriter, r *http.Request) {
 // on error returns an empty user
 func getUser(s *sessions.Session) User {
 	val := s.Values["user"]
-	var user = User{}
 	user, ok := val.(User)
 	if !ok {
 		return User{Authenticated: false}
