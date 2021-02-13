@@ -87,25 +87,37 @@
       </tr>
     </thead>
     <tbody>
-      {{range .CallStatus.Persons}}	  
-      	<tr>
-			<td>OTP</td>   <!-- TODO Generate-->
-			<td>10:00<!--.AnswerReceivedTime TODO--></td>        
-			<td>{{.Phone}}</td>      
-        	<td>{{.Group}}</td>
-			<td>			
-				<select>
-					{{if .Status }}  <!-- TODO ID Feld fehlt hier-->
-						<option selected="selected" value="/auth/persons/toggle/ID">geimpft</option>
-						<option  value="/auth/persons/toggle/ID">ungeimpft</option>
-					{{else}}  
-						<option  value="/auth/persons/toggle/ID">geimpft</option>
-						<option selected="selected" value="/auth/persons/toggle/ID">ungeimpft</option>
-					 <!-- TODO ID Feld fehlt hier-->
-					{{end}}
-				</select>
+      {{if .CallStatus.Persons}}
 
-			</td>
+      
+        {{range .CallStatus.Persons}}	  
+          <tr>
+		          <td>OTP</td>   <!-- TODO Generate-->
+		          <td>10:00<!--.AnswerReceivedTime TODO--></td>        
+		          <td>{{.Phone}}</td>      
+              <td>{{.Group}}</td>
+		        <td>			
+		        	<select style="margin-bottom: unset;">
+		        		{{if .Status }}  <!-- TODO ID Feld fehlt hier-->
+		        			<option selected="selected" value="/auth/persons/toggle/ID">geimpft</option>
+		        			<option  value="/auth/persons/toggle/ID">ungeimpft</option>
+		        		{{else}}  
+		        			<option  value="/auth/persons/toggle/ID">geimpft</option>
+		        			<option selected="selected" value="/auth/persons/toggle/ID">ungeimpft</option>
+		        		 <!-- TODO ID Feld fehlt hier-->
+		        		{{end}}
+		        	</select>
+		        </td>
+          </tr>
+        {{end}}
+      {{else}}
+      <tr>
+        <td>  Noch keine Zusagen</td>
+        <td>  </td>
+        <td>  </td>
+        <td>  </td>
+        <td>  </td>
+      
       </tr>
       {{end}}
     </tbody>
