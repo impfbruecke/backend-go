@@ -420,7 +420,9 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 
 	if isFull {
 		log.Debugf("number %s rejected for call (is full)\n", phoneNumber)
-		b.sender.SendMessageReject(phoneNumber)
+		if err := b.sender.SendMessageReject(phoneNumber); err != nil {
+			log.Error(err)
+		}
 	} else {
 
 		log.Debugf("Accepting number %s for call \n", phoneNumber)

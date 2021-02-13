@@ -63,6 +63,8 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 	}
 }
