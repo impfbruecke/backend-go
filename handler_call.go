@@ -79,6 +79,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
+	templates = parseTemplates()
 	tData := TmplData{
 		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
@@ -87,10 +88,10 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
 	details, err := bridge.GetCallStatus(callID)
 	if err != nil {
-		log.Info(err, "No Call ID is given in URL. Don't show any CallDetails")
-	} else {
-		tData.CallStatus = details
+		log.Info(err, "Couldn't get CallDetails to given ID in URL. Don't show any CallDetails")
 	}
+
+	tData.CallStatus = details
 
 	if r.Method == http.MethodGet {
 
