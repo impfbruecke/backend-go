@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,19 +31,23 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tData := TmplData{
-		CurrentUser:        contextString(contextKeyCurrentUser, r),
-		DefaultTitle:       "Ruf IZ Duisburg",            // TODO add collumn to users table
-		DefaultCapacity:    "10",                         // TODO add collumn to users table
-		DefaultLocation:    "Somewhere over the rainbow", // TODO add collumn to users table
-		DefaultStartHour:   strconv.Itoa(startHour),
-		DefaultStartMinute: strconv.Itoa(startMin),
-		DefaultEndHour:     strconv.Itoa(endHour),
-		DefaultEndMinute:   strconv.Itoa(endMin),
+		CurrentUser:           contextString(contextKeyCurrentUser, r),
+		DefaultTitle:          "IZ Duisburg",                 // TODO add collumn to users table
+		DefaultCapacity:       "10",                          // TODO add collumn to users table
+		DefaultLocationName:   "Impfzentrum Duisburg am TAM", // TODO add collumn to users table
+		DefaultLocationStreet: "Plessingstraße",              // TODO add collumn to users table
+		DefaultHouseNumber:    "20",                          // TODO add collumn to users table
+		DefaultPostCode:       "47051",                       // TODO add collumn to users table
+		DefaultCity:           "Duisburg",                    // TODO add collumn to users table
+		DefaultStartHour:      strconv.Itoa(startHour),
+		DefaultStartMinute:    strconv.Itoa(startMin),
+		DefaultEndHour:        strconv.Itoa(endHour),
+		DefaultEndMinute:      strconv.Itoa(endMin),
 	}
 
 	if r.Method == http.MethodGet {
 
-		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 
 	} else if r.Method == http.MethodPost {
 
@@ -52,7 +57,7 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Warn(err)
 			tData.AppMessages = errStrings
-			log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+			log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 			return
 		}
 
@@ -60,12 +65,12 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		if err := bridge.AddCall(call); err != nil {
 			log.Warn(err)
 			tData.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
-			templates.ExecuteTemplate(w, "call.html", tData)
+			templates.ExecuteTemplate(w, "newCall.html", tData)
 			return
 		}
 
 		tData.AppMessageSuccess = "Ruf erfolgreich erstellt!"
-		log.Info(templates.ExecuteTemplate(w, "call.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")
@@ -74,9 +79,20 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
+	templates = parseTemplates()
 	tData := TmplData{
 		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
+
+	callID := mux.Vars(r)["id"]
+
+	details, err := bridge.GetCallStatus(callID)
+	if err != nil {
+		log.Info(err, "Couldn't get CallDetails to given ID in URL. Don't show any CallDetails")
+	}
+
+	tData.CallStatus = details
+
 	if r.Method == http.MethodGet {
 
 		calls, err := bridge.GetActiveCalls()
@@ -88,7 +104,7 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
 		// Show all active calls
 		tData.Calls = calls
-		log.Info(templates.ExecuteTemplate(w, "active.html", tData))
+		log.Info(templates.ExecuteTemplate(w, "calls.html", tData))
 
 	} else {
 		io.WriteString(w, "Invalid request")
