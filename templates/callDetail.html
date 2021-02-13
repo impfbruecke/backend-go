@@ -52,8 +52,7 @@
       </tr>
     </thead>
     <tbody>
-      {{range .CallStatus.Persons}}
-	  	<script>console.log(JSON.stringify("{{.}}")) </script>
+      {{range .CallStatus.Persons}}	  
       	<tr>
 			<td>OTP</td>   <!-- TODO Generate-->
 			<td>10:00<!--.AnswerReceivedTime TODO--></td>        
@@ -69,7 +68,7 @@
 						<option selected="selected" value="/auth/persons/toggle/ID">ungeimpft</option>
 					 <!-- TODO ID Feld fehlt hier-->
 					{{end}}
-				  </select>
+				</select>
 
 			</td>
       </tr>
