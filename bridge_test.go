@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"reflect"
@@ -15,7 +14,6 @@ import (
 )
 
 var (
-	db       *sql.DB
 	fixtures *testfixtures.Loader
 	sender   *TwillioSender
 )
