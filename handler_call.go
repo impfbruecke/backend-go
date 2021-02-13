@@ -79,13 +79,16 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 
 func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 
-	callID := mux.Vars(r)["id"]
-	details, err := bridge.GetCallStatus(callID)
 	tData := TmplData{
 		CurrentUser: contextString(contextKeyCurrentUser, r),
 	}
 
-	if err == nil {
+	callID := mux.Vars(r)["id"]
+
+	details, err := bridge.GetCallStatus(callID)
+	if err != nil {
+		log.Info(err, "No Call ID is given in URL. Don't show any CallDetails")
+	} else {
 		tData.CallStatus = details
 	}
 
