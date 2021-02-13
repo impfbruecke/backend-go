@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	testfixtures "github.com/go-testfixtures/testfixtures/v3"
 	"github.com/google/go-cmp/cmp"
@@ -231,35 +232,46 @@ func TestBridge_AddPersons(t *testing.T) {
 }
 
 func TestBridge_GetCallStatus(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		id string
-	}
+
+	prepareTestDatabase()
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		id      string
 		want    CallStatus
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get a valid callstatus",
+			id:   "1",
+			want: CallStatus{
+				Call: Call{
+					ID:        1,
+					Title:     "Call number 1",
+					CenterID:  0,
+					Capacity:  1,
+					TimeStart: time.Date(2021, time.February, 10, 12, 30, 0, 0, time.Local),
+					TimeEnd:   time.Date(2021, time.February, 10, 12, 35, 0, 0, time.Local),
+					Location:  "somewhere1",
+				},
+				Persons: []Person{
+					{"1230", 0, 1, false},
+					{"1231", 0, 1, false},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.GetCallStatus(tt.args.id)
+			got, err := bridge.GetCallStatus(tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.GetCallStatus() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bridge.GetCallStatus() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetPersons() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
