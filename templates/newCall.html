@@ -5,24 +5,21 @@
 
   <form action="/auth/call" class="pure-form" method="post">
     <div class="row">
-      <div class="col-12">
+
+      <div class="column column-100">
         <label class="label-below" for="title">Titel</label>
         <input type="text" id="title" name="title" value="{{.DefaultTitle}}" />
       </div>
     </div>
 
     <div class="row">
-      <div class="col-4">
+      <div class="column column-30">
         <div class="dropdown">
-          <label class="label-below" for="capacity">Impfstoff</label>
-         
+          <label class="label-below" for="capacity">Impfstoff</label>         
           <select>
-
-
-              <!--- TODO FILL WITH LIFE-->
+            <!--- TODO FILL WITH LIFE-->
             <!--
-            selected := CallStatus.Call.SelectedVaccine}} 
-            
+            selected := CallStatus.Call.SelectedVaccine}}             
             {range Vaccines}}
              {if eq .Name selected }}
                 <option selected="selected" value="setVaccine">Name</option>
@@ -31,16 +28,15 @@
               {end}} 
             {end}}
         -->
-
-          <!--- TODO PLACEHOLDER-->
+          <!--- TODO START PLACEHOLDER-->
           <option selected="selected" value="setVaccine">Biontech</option>
           <option  value="setVaccine">Moderna</option>
           <option  value="setVaccine">Astra Zeneca</option>
-          <!--- TODO PLACEHOLDER-->
+          <!--- TODO END PLACEHOLDER-->
         </select>
         </div>
       </div>
-      <div class="col-3">
+      <div class="column column-10">
         <label class="label-below" for="capacity">Anzahl</label>
         <input
           type="number"
@@ -48,9 +44,8 @@
           name="capacity"
           value="{{.DefaultCapacity}}"
         />
-      </div>
-      <div class="col-2"></div>
-      <div class="col-3">
+      </div>      
+      <div class="column column-10 column-offset-50">
         <label for="start-time">Anfang</label>
         <input
           id="start-time"
@@ -60,12 +55,8 @@
           value="0"
         />
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-9"></div>
-
-      <div class="col-3">
+      <div class="column column-10">
         <label for="end-time">Ende</label>
         <input
           id="end-time"
@@ -77,7 +68,7 @@
     </div>
 
     <div class="row">
-      <div class="col-12">
+      <div class="column column-100">
         <label for="location">Name</label>
         <input
           type="text"
@@ -89,7 +80,7 @@
     </div>
 
     <div class="row">
-      <div class="col-8">
+      <div class="column column-80">
         <label for="location">Straße</label>
         <input
           type="text"
@@ -99,7 +90,7 @@
         />
       </div>
 
-      <div class="col-4">
+      <div class="column column-20">
         <label for="location">Hausnummer</label>
         <input
           type="text"
@@ -111,7 +102,7 @@
     </div>
 
     <div class="row">
-      <div class="col-4">
+      <div class="column column-20">
         <label for="location">Postleitzahl</label>
         <input
           type="text"
@@ -120,7 +111,7 @@
           value="{{.DefaultPostCode}}"
         />
       </div>
-      <div class="col-8">
+      <div class="column column-80">
         <label for="location">Stadt</label>
         <input
           type="text"
@@ -132,13 +123,17 @@
     </div>
 
     <div class="row">
-      <div class="col-12">
+      <div class="column column-100">
         <label for="location">Optional</label>
         <input type="text" id="location" name="location" value="" />
       </div>
     </div>
+    <div class="row">
+      <div class="column column-100">
+    <input type="submit" value="Ruf Starten" style="width: inherit;"/>
 
-    <input type="submit" value="Ruf Starten" />
+  </div>
+</div>
   </form>
 </div>
 
