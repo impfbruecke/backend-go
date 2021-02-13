@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	testfixtures "github.com/go-testfixtures/testfixtures/v3"
 	"github.com/google/go-cmp/cmp"
@@ -146,28 +147,41 @@ func TestBridge_GetAcceptedPersons(t *testing.T) {
 }
 
 func TestBridge_AddCall(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		call Call
-	}
+
+	prepareTestDatabase()
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		call    Call
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			"Add valid call",
+			Call{
+				Title:     "Test call1",
+				CenterID:  0,
+				Capacity:  1,
+				TimeStart: time.Now(),
+				TimeEnd:   time.Now().Add(4 * time.Hour),
+				Location:  "here",
+			},
+			false,
+		},
+
+		{
+			"Add call with missing fields",
+			Call{
+				CenterID:  0,
+				TimeStart: time.Now(),
+				TimeEnd:   time.Now().Add(4 * time.Hour),
+				Location:  "nowhere",
+			},
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.AddCall(tt.args.call); (err != nil) != tt.wantErr {
+			if err := bridge.AddCall(tt.call); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.AddCall() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
