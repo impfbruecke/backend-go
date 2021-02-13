@@ -481,7 +481,9 @@ func (b *Bridge) PersonDelete(phoneNumber string) error {
 		return err
 	}
 
-	b.sender.SendMessageDelete(phoneNumber)
+	if err := b.sender.SendMessageDelete(phoneNumber); err != nil {
+		return err
+	}
 
 	log.Info("Number of persons deleted: ", numrows)
 	return nil
