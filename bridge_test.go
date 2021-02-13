@@ -6,7 +6,6 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	testfixtures "github.com/go-testfixtures/testfixtures/v3"
 	"github.com/google/go-cmp/cmp"
@@ -141,48 +140,6 @@ func TestBridge_GetAcceptedPersons(t *testing.T) {
 			}
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("MakeGatewayInfo() mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestBridge_AddCall(t *testing.T) {
-
-	prepareTestDatabase()
-
-	tests := []struct {
-		name    string
-		call    Call
-		wantErr bool
-	}{
-		{
-			"Add valid call",
-			Call{
-				Title:     "Test call1",
-				CenterID:  0,
-				Capacity:  1,
-				TimeStart: time.Now(),
-				TimeEnd:   time.Now().Add(4 * time.Hour),
-				Location:  "here",
-			},
-			false,
-		},
-
-		{
-			"Add call with missing fields",
-			Call{
-				CenterID:  0,
-				TimeStart: time.Now(),
-				TimeEnd:   time.Now().Add(4 * time.Hour),
-				Location:  "nowhere",
-			},
-			true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := bridge.AddCall(tt.call); (err != nil) != tt.wantErr {
-				t.Errorf("Bridge.AddCall() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
