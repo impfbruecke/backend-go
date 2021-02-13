@@ -49,7 +49,7 @@
 			<tr>
 				<th>Rufnummer</th>
 				<th>Gruppe</th>
-				<th>Letzter Ruf</th>
+				<th>Center ID</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -57,11 +57,7 @@
 			<tr>
 				<td> {{.Phone}}</td>
 				<td> {{.Group}}</td>
-				{{if .LastCall.Valid }}
-				<td> {{.LastCall.Value}}</td>
-				{{else}}
-				<td> Nicht benachrichtigt </td>
-				{{end}}
+				<td> {{.CenterID}}</td>
 			</tr>
 			{{end}}
 		</tbody>
