@@ -1,4 +1,5 @@
 envfile
 data.db
+test.db
 app.rsa
 app.rsa.pub

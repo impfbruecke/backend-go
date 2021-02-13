@@ -19,6 +19,9 @@ type TwillioSender struct {
 // an error if sending fails
 func (s TwillioSender) SendMessage(msgTo, msgBody string) error {
 
+	var jsonData []byte
+	var err error
+
 	// Set required data
 	data := url.Values{}
 	data.Set("To", msgTo)
@@ -29,14 +32,17 @@ func (s TwillioSender) SendMessage(msgTo, msgBody string) error {
 		"message": msgBody,
 	}
 
-	jsonData, err := json.Marshal(values)
+	if jsonData, err = json.Marshal(values); err != nil {
+		return err
+	}
+
 	data.Set("Parameters", string(jsonData))
 
 	// Create a new client and request
 	client := &http.Client{}
 	r, err := http.NewRequest("POST", s.endpoint, strings.NewReader(data.Encode())) // URL-encoded payload
 	if err != nil {
-		log.Error(err)
+		return err
 	}
 
 	// Set necessary headers
@@ -51,7 +57,7 @@ func (s TwillioSender) SendMessage(msgTo, msgBody string) error {
 	// Execute the request
 	res, err := client.Do(r)
 	if err != nil {
-		log.Error(err)
+		return err
 	}
 
 	// Print the result status code

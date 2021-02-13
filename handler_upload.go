@@ -11,13 +11,18 @@ import (
 func handlerUpload(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 		return
 	}
 
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 200 MB files.
-	r.ParseMultipartForm(200 << 20)
+	if err := r.ParseMultipartForm(200 << 20); err != nil {
+		log.Warn(err)
+		return
+	}
 	// FormFile returns the first file for the given key `myFile`
 	// it also returns the FileHeader so we can get the Filename,
 	// the Header and the size of the file
@@ -70,5 +75,9 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the list of new persons to the bridge/database
-	bridge.AddPersons(persons)
+	if err := bridge.AddPersons(persons); err != nil {
+		log.Error(err)
+		// TODO show an error in the UI
+	}
+
 }
