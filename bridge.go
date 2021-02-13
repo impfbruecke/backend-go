@@ -182,9 +182,17 @@ func (b Bridge) SendNotifications() {
 // if there are no persons to notify left
 func (b *Bridge) NotifyCall(id, numPersons int) error {
 	// TODO
-	persons, err := b.GetNextPersonsForCall(numPersons, id)
+	var err error
+	var persons []Person
+	var call CallStatus
 
-	call, err := b.GetCallStatus(strconv.Itoa(id))
+	if persons, err = b.GetNextPersonsForCall(numPersons, id); err != nil {
+		return err
+	}
+
+	if call, err = b.GetCallStatus(strconv.Itoa(id)); err != nil {
+		return err
+	}
 
 	if err != nil {
 		return err
@@ -239,8 +247,11 @@ func (b *Bridge) AddPerson(person Person) error {
 		return err
 	}
 
-	numrows, err := res.RowsAffected()
-	log.Debugf("Persons added: %v\n", numrows)
+	if numrows, err := res.RowsAffected(); err != nil {
+		return err
+	} else {
+		log.Debugf("Persons will be added: %v\n", numrows)
+	}
 
 	return tx.Commit()
 }
