@@ -146,30 +146,43 @@ func TestBridge_GetAcceptedPersons(t *testing.T) {
 }
 
 func TestBridge_AddPerson(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		person Person
-	}
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		person  Person
+		want    []Person
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Add a valid person",
+			person: Person{
+				Phone:    "0001",
+				CenterID: 0,
+				Group:    1,
+				Status:   false,
+			},
+			want: []Person{
+				{Phone: "1230", Group: 1},
+				{Phone: "1231", Group: 1},
+				{Phone: "1232", Group: 1},
+				{"0001", 0, 1, false},
+			}, wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.AddPerson(tt.args.person); (err != nil) != tt.wantErr {
+			if err := bridge.AddPerson(tt.person); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.AddPerson() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			got, err := bridge.GetPersons()
+			if err != nil {
+				t.Errorf("GetPersons() after AddPersion() failed with error: %v \n", err)
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("GetPersons() after AddPersion() mismatch (-want +got):\n%s", diff)
+			}
+
 		})
 	}
 }
