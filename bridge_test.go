@@ -21,8 +21,6 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	os.Setenv("DE", "Europe/Berlin")
-
 	if _, err := os.Stat("./test.db"); err == nil {
 		// Old DB exists, try to remove it
 		fmt.Println("Removing old testDB")
@@ -265,8 +263,8 @@ func TestBridge_GetCallStatus(t *testing.T) {
 					Title:     "Call number 1",
 					CenterID:  0,
 					Capacity:  1,
-					TimeStart: time.Date(2021, time.February, 10, 12, 30, 0, 0, time.Local),
-					TimeEnd:   time.Date(2021, time.February, 10, 12, 35, 0, 0, time.Local),
+					TimeStart: time.Date(2021, time.February, 10, 12, 30, 0, 0, time.UTC),
+					TimeEnd:   time.Date(2021, time.February, 10, 12, 35, 0, 0, time.UTC),
 					Location:  "somewhere1",
 				},
 				Persons: []Person{
