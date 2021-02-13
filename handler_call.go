@@ -52,12 +52,22 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost {
 
 		// Try to create new call from input data
-		r.ParseForm()
+		if err := r.ParseForm(); err != nil {
+			log.Warn(err)
+			tData.AppMessages = []string{"Eingaben ungültig, Ruf nicht gespeichert"}
+			if err := templates.ExecuteTemplate(w, "newCall.html", tData); err != nil {
+				log.Error(err)
+			}
+			return
+		}
+
 		call, errStrings, err := NewCall(r.Form)
 		if err != nil {
 			log.Warn(err)
 			tData.AppMessages = errStrings
-			log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
+			if err := templates.ExecuteTemplate(w, "newCall.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
@@ -65,15 +75,21 @@ func handlerSendCall(w http.ResponseWriter, r *http.Request) {
 		if err := bridge.AddCall(call); err != nil {
 			log.Warn(err)
 			tData.AppMessages = []string{"Ruf konnte nicht gespeichert werden"}
-			templates.ExecuteTemplate(w, "newCall.html", tData)
+			if err := templates.ExecuteTemplate(w, "newCall.html", tData); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		tData.AppMessageSuccess = "Ruf erfolgreich erstellt!"
-		log.Info(templates.ExecuteTemplate(w, "newCall.html", tData))
+		if err := templates.ExecuteTemplate(w, "newCall.html", tData); err != nil {
+			log.Error(err)
+		}
 
 	} else {
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 	}
 }
 
@@ -98,15 +114,22 @@ func handlerActiveCalls(w http.ResponseWriter, r *http.Request) {
 		calls, err := bridge.GetActiveCalls()
 		if err != nil {
 			log.Warn(err)
-			io.WriteString(w, "Failed to retrieve calls")
+			// TODO redirect to template
+			if _, err := io.WriteString(w, "Failed to retrieve calls"); err != nil {
+				log.Error(err)
+			}
 			return
 		}
 
 		// Show all active calls
 		tData.Calls = calls
-		log.Info(templates.ExecuteTemplate(w, "calls.html", tData))
+		if err := templates.ExecuteTemplate(w, "calls.html", tData); err != nil {
+			log.Error(err)
+		}
 
 	} else {
-		io.WriteString(w, "Invalid request")
+		if _, err := io.WriteString(w, "Invalid request"); err != nil {
+			log.Error(err)
+		}
 	}
 }
