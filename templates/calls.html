@@ -1,0 +1,36 @@
+{{ template "header.html" . }}
+<style>
+	
+  
+	.allCallsTable {
+	  overflow-y: scroll;
+	  overflow-x: hidden;
+	  min-height: inherit;
+	}
+	.callOverview{
+		min-height: inherit;
+	}
+  .card{
+	  min-height: 500px;
+	  max-height: 1000px;
+
+  }
+
+  </style>
+
+<div class="card">
+	<h2>Ihre Rufe</h2>
+
+	<div class="row callOverview">
+		<!--LEFT-->
+		<div class="allCallsTable column column-20">			
+			{{template "callsTable.html" . }}			
+		</div>					
+			<!--RIGHT-->
+		<div class="column column-80">
+			{{template "callDetail.html" . }}
+			</div>
+		</div>
+	</div>
+
+	{{ template "footer.html" . }}

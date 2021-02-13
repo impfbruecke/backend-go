@@ -5,17 +5,21 @@ package main
 // may be nil, it is up to the template to check for nil values where they
 // might occurr
 type TmplData struct {
-	CurrentUser        string
-	DefaultCapacity    string
-	DefaultEndHour     string
-	DefaultEndMinute   string
-	DefaultLocation    string
-	DefaultStartHour   string
-	DefaultStartMinute string
-	DefaultTitle       string
-	AppMessages        []string
-	AppMessageSuccess  string
-	Calls              []Call
-	CallStatus         CallStatus
-	Persons            []Person
+	CurrentUser           string
+	DefaultCapacity       string
+	DefaultEndHour        string
+	DefaultEndMinute      string
+	DefaultLocationName   string
+	DefaultLocationStreet string
+	DefaultHouseNumber    string
+	DefaultPostCode       string
+	DefaultCity           string
+	DefaultStartHour      string
+	DefaultStartMinute    string
+	DefaultTitle          string
+	AppMessages           []string
+	AppMessageSuccess     string
+	Calls                 []Call
+	CallStatus            CallStatus
+	Persons               []Person
 }
