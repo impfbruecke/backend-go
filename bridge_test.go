@@ -248,6 +248,8 @@ func TestBridge_GetCallStatus(t *testing.T) {
 
 	prepareTestDatabase()
 
+	loc := time.FixedZone("myzone", 3600)
+
 	tests := []struct {
 		name    string
 		id      string
@@ -263,8 +265,8 @@ func TestBridge_GetCallStatus(t *testing.T) {
 					Title:     "Call number 1",
 					CenterID:  0,
 					Capacity:  1,
-					TimeStart: time.Date(2021, time.February, 10, 12, 30, 0, 0, time.UTC),
-					TimeEnd:   time.Date(2021, time.February, 10, 12, 35, 0, 0, time.UTC),
+					TimeStart: time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
+					TimeEnd:   time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
 					Location:  "somewhere1",
 				},
 				Persons: []Person{
