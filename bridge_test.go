@@ -21,6 +21,15 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
+	if _, err := os.Stat("./test.db"); err == nil {
+		// Old DB exists, try to remove it
+		fmt.Println("Removing old testDB")
+		err = os.Remove("./test.db")
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	// exist. Exit application on errors, we can't continue without database
 	db, err := sqlx.Connect("sqlite3", "./test.db")
 
@@ -28,6 +37,12 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Creating schemas from scratch")
+	db.MustExec(schemaCalls)
+	db.MustExec(schemaPersons)
+	db.MustExec(schemaUsers)
+	db.MustExec(schemaNotifications)
 
 	fmt.Println("creating sender")
 	sender = NewTwillioSender("test", "test", "test", "test")
