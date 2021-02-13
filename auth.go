@@ -108,7 +108,9 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 
 // Serve login page
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "login.html", TmplData{})
+	if err := templates.ExecuteTemplate(w, "login.html", TmplData{}); err != nil {
+		log.Error(err)
+	}
 }
 
 // middlewareAuth  prepended to all handlers to handle authentication
@@ -163,7 +165,9 @@ func forbiddenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tData := TmplData{AppMessages: []string{"Login Fehlgeschlagen"}}
-	templates.ExecuteTemplate(w, "login.html", tData)
+	if err := templates.ExecuteTemplate(w, "login.html", tData); err != nil {
+		log.Error(err)
+	}
 }
 
 // getUser returns a user from session s
