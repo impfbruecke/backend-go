@@ -2,10 +2,9 @@ package main
 
 import (
 	"errors"
-	"strconv"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/ttacon/libphonenumber"
+	"strconv"
 )
 
 // Person represents a person that has been imported to be notified for calls.

@@ -436,10 +436,9 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 		}
 
 		_, err = bridge.db.NamedExec(
-			`UPDATE invitations SET status = "accepted", time=:time WHERE phone=:phone `, //TODO Test
+			`UPDATE invitations SET status = "accepted" WHERE phone=:phone`,
 			map[string]interface{}{
 				"phone": phoneNumber,
-				"time":  time.Now(),
 			},
 		)
 	}
