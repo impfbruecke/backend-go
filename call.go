@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/url"
 	"strconv"
 	"time"
@@ -18,6 +19,7 @@ type Call struct {
 	Capacity   int       `db:"capacity"`
 	TimeStart  time.Time `db:"time_start"`
 	TimeEnd    time.Time `db:"time_end"`
+	YoungOnly  bool      `db:"young_only"`
 	LocName    string    `db:"loc_name"`
 	LocStreet  string    `db:"loc_street"`
 	LocHouseNr string    `db:"loc_housenr"`
@@ -45,11 +47,13 @@ func todayAt(input string) (time.Time, error) {
 func NewCall(data url.Values) (Call, []string, error) {
 
 	var errorStrings []string
+	var retError error
 
 	// Validate capacity > 0
 	capacity, err := strconv.Atoi(data.Get("capacity"))
 	if err != nil || capacity < 1 {
 		errorStrings = append(errorStrings, "Ungültige Kapazität")
+		retError = err
 	}
 
 	// Validate start and end times make sense
@@ -59,19 +63,23 @@ func NewCall(data url.Values) (Call, []string, error) {
 	timeStart, err := todayAt(data.Get("start-time"))
 	if err != nil {
 		errorStrings = append(errorStrings, "Ungültige Startzeit")
+		retError = err
 	}
 
 	timeEnd, err := todayAt(data.Get("end-time"))
 	if err != nil {
 		errorStrings = append(errorStrings, "Ungültige Endzezeit")
+		retError = err
 	}
 
 	if !timeStart.Before(timeEnd) {
 		errorStrings = append(errorStrings, "Endzezeit ist nicht nach Startzeit")
+		retError = err
 	}
 
 	// Get text fields and check that they are not empty strings
 	var locName, locStreet, locHouseNr, locPlz, locCity, locOpt, title string
+	var youngOnly bool
 
 	locName, errorStrings = getFormFieldWithErrors(data, "loc_name", errorStrings)
 	locStreet, errorStrings = getFormFieldWithErrors(data, "loc_street", errorStrings)
@@ -80,6 +88,19 @@ func NewCall(data url.Values) (Call, []string, error) {
 	locCity, errorStrings = getFormFieldWithErrors(data, "loc_city", errorStrings)
 	locOpt, errorStrings = getFormFieldWithErrors(data, "loc_opt", errorStrings)
 	title, errorStrings = getFormFieldWithErrors(data, "title", errorStrings)
+
+	if youngOnly, err = strconv.ParseBool(data.Get("young_only")); err != nil {
+		errorStrings = append(errorStrings, "Ungültige Angabe für Impfstoff")
+		retError = err
+	}
+
+	if len(errorStrings) != 0 {
+		retError = errors.New("Missing input data")
+	}
+
+	if err != nil {
+		retError = err
+	}
 
 	return Call{
 		Title:      title,
@@ -93,7 +114,8 @@ func NewCall(data url.Values) (Call, []string, error) {
 		LocPLZ:     locPlz,
 		LocCity:    locCity,
 		LocOpt:     locOpt,
-	}, errorStrings, nil
+		YoungOnly:  youngOnly,
+	}, errorStrings, retError
 }
 
 func getFormFieldWithErrors(data url.Values, formID string, errorStrings []string) (string, []string) {
