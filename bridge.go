@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS persons (
 	phone TEXT PRIMARY KEY,
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
-	status INTEGER NOT NULL
+	status INTEGER NOT NULL,
+	young INTEGER NOT NULL
 );
 `
 var schemaCalls = `
@@ -447,6 +448,29 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 
 	log.Debugf("Found persons: %+v\n", persons)
 	return persons, err
+}
+
+type Invitation struct {
+	ID     int       `db:"id"`
+	Phone  string    `db:"phone"`
+	CallID int       `db:"call_id"`
+	Status string    `db:"status"`
+	time   time.Time `db:"time"`
+}
+
+func (b *Bridge) GetInvitations() ([]Invitation, error) {
+
+	log.Debug("Retrieving invitations")
+
+	invitations := []Invitation{}
+	err := b.db.Select(&invitations, "SELECT * FROM invitations")
+	if err != nil {
+		log.Error(err)
+		return invitations, err
+	}
+
+	log.Debugf("Found invitations: %+v\n", invitations)
+	return invitations, err
 }
 
 // CallFull is true if the call is full. Used to check call status

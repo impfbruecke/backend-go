@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -380,14 +381,44 @@ func TestBridge_GetActiveCalls(t *testing.T) {
 }
 
 func TestBridge_GetNextPersonsForCall(t *testing.T) {
+
+	var fixtures *testfixtures.Loader
+	var err error
+	var allPersons []Person
+
+	fixtures, err = testfixtures.New(
+		testfixtures.Database(bridge.db.DB),                                  // You database connection
+		testfixtures.Dialect("sqlite"),                                       // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
+		testfixtures.Files("./testdata/fixtures/persons_selectnext.yml"),     // the directory containing the YAML files
+		testfixtures.Files("./testdata/fixtures/invitations_selectnext.yml"), // the directory containing the YAML files
+		testfixtures.Files("./testdata/fixtures/calls_selectnext.yml"),       // the directory containing the YAML files
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	allPersons, err = bridge.GetPersons()
+	if err != nil {
+		panic(err)
+	}
+
+	if err := fixtures.Load(); err != nil {
+		fmt.Println("Loading fixtures")
+		panic(err)
+	}
 	tests := []struct {
 		name    string
 		num     int
 		callID  int
-		want    []Person
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		// 11 persons total in fixtures
+		// call ID 0: no age restriction
+		// call ID 1: withage restriction
+		{"Call without age restriction, 5/11 persons", 5, 0, false},
+		{"Call without age restriction, 20/11 persons", 20, 0, false},
+		{"Call with age restriction, 5/11 persons", 5, 1, false},
+		{"Call with age restriction, 20/11 persons", 20, 1, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -396,18 +427,99 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 				t.Errorf("Bridge.GetNextPersonsForCall() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bridge.GetNextPersonsForCall() = %v, want %v", got, tt.want)
+
+			// Get the call with the ID specified
+			call, err := bridge.GetCallStatus(strconv.Itoa(tt.callID))
+			if err != nil {
+				panic(err)
 			}
 
-			// TODO check:
-			// lower group numbers should always go first
-			// order within one group should be randomized
-			// return full number of persons if enough in db, not more or less
-			// return less persons if not enough available in the database
-			// check if all persons meet only_young criteria
+			invitations, err := bridge.GetInvitations()
+
+			// Find highest selected group in results
+			highestGroup := 0
+			for _, v := range got {
+				if v.Group > highestGroup {
+					highestGroup = v.Group
+				}
+			}
+
+			lowerPersonNum := 0
+			// Find how many persons are in the DB with group number under highestGroup
+			for _, v := range allPersons {
+				if v.Group > highestGroup {
+					lowerPersonNum += 1
+				}
+			}
+
+			// Lower group numbers should always go first. If the number of
+			// persons with group nubmer below the highest returned group is
+			// greater or equal of to the number we are looking for, the result
+			// is wrong. A call should first be issued to alle the persons of
+			// lower groups before trying the next one up
+			if lowerPersonNum >= tt.num {
+				t.Error("Bridge.GetNextPersonsForCall selected persons with higher group than necessary")
+				return
+			}
+
+			// if diff := cmp.Diff(tt.want, got); diff != "" {
+			// 	t.Errorf("Bridge.GetNextPersonsForCall() mismatch (-want +got):\n%s", diff)
+			// }
+
+			// Check there are no duplicates in the persons returned. We place
+			// the returned slice in a map, with the phone as key and a
+			// arbitrary value (1). For each person, we try to get it by
+			// accessing the map, if it fails, we add it (this is good and
+			// means the person was not yet in the map). If it succeds we exit
+			// with an error, this means we tried to access a key (phonenumber)
+			// that already exists in the map, meaning that it is duplicate
+			duplicate_frequency := make(map[string]int)
+			for _, pers := range got {
+				if _, ok := duplicate_frequency[pers.Phone]; ok {
+					t.Error("Bridge.GetNextPersonsForCall returned duplicates")
+				} else {
+					duplicate_frequency[pers.Phone] = 1
+				}
+			}
+
+			// Check if less than the requested number of persons where
+			// returned, even though we had enough to choose from
+			if len(got) < tt.num && len(allPersons) > tt.num {
+				t.Error("Bridge.GetNextPersonsForCall returned not enough persons, even though available")
+				return
+			}
+
+			// Check the number of persons returned does not exist the number requested
+			if len(got) > tt.num {
+				t.Error("Bridge.GetNextPersonsForCall returned too many persons")
+				return
+			}
+
+			for _, v := range got {
+				// check none is already vaccinated
+				if v.Status {
+					t.Errorf("Bridge.GetNextPersonsForCall returned already vaccinated person Phone: %v\n", v.Phone)
+					return
+				}
+
+				// check if all persons meet only_young criteria (no old persons in call for young only)
+				if !v.Young && call.Call.YoungOnly {
+					t.Errorf("Bridge.GetNextPersonsForCall returned person not compatible with call: %v\n", v.Phone)
+					return
+				}
+			}
+
 			// check not already notified persons are retrieved
-			// check persons notified for a different call are retrieved
+			for _, i := range invitations {
+				for _, p := range got {
+					if i.Phone == p.Phone && i.CallID == tt.callID {
+						t.Errorf("Bridge.GetNextPersonsForCall returned phone %s already notified for call: %v\n", p.Phone, tt.callID)
+						return
+					}
+				}
+			}
+
+			// TODO check: order within one group should be randomized
 		})
 	}
 }
@@ -705,6 +817,37 @@ func TestBridge_GetAllCalls(t *testing.T) {
 
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("Bridge.GetAllCalls() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestBridge_GetInvitations(t *testing.T) {
+	type fields struct {
+		db     *sqlx.DB
+		sender *TwillioSender
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    []Invitation
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &Bridge{
+				db:     tt.fields.db,
+				sender: tt.fields.sender,
+			}
+			got, err := b.GetInvitations()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bridge.GetInvitations() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Bridge.GetInvitations() = %v, want %v", got, tt.want)
 			}
 		})
 	}

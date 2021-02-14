@@ -16,6 +16,7 @@ type Person struct {
 	CenterID int    `db:"center_id"` // ID of center that added this person
 	Group    int    `db:"group_num"` // Vaccination group
 	Status   bool   `db:"status"`    // Vaccination status
+	Young    bool   `db:"young"`     // Can be vacciated with any serum
 }
 
 // NewPerson receives the input data and returns a slice of person objects. For
