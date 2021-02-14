@@ -516,35 +516,29 @@ func TestBridge_CallFull(t *testing.T) {
 }
 
 func TestBridge_LastCallNotified(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		person Person
-	}
+	prepareTestDatabase()
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		person  Person
 		want    Call
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{"Phone 1230", Person{Phone: "1230"}, fixtureCalls[0], false},
+		{"Phone 1231", Person{Phone: "1231"}, fixtureCalls[0], false},
+		{"Phone 1232", Person{Phone: "1232"}, fixtureCalls[1], false},
+		{"Phone noexist", Person{Phone: "noexist"}, Call{}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.LastCallNotified(tt.args.person)
+			got, err := bridge.LastCallNotified(tt.person)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.LastCallNotified() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bridge.LastCallNotified() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.LastCallNotified() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

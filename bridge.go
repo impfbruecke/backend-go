@@ -461,7 +461,13 @@ func (b *Bridge) CallFull(call Call) (bool, error) {
 // LastCallNotified retrieves the last call a person was notified to
 func (b *Bridge) LastCallNotified(person Person) (Call, error) {
 	lastCallOfPerson := Call{}
-	err := b.db.Get(&lastCallOfPerson, "select calls.* from calls join invitations where invitations.phone=$1 and invitations.status = \"accepted\" order by invitations.time desc limit 1", person.Phone)
+	err := b.db.Get(&lastCallOfPerson,
+		`SELECT * FROM calls
+		WHERE id = (
+			SELECT call_id FROM invitations
+			WHERE phone=$1
+			ORDER BY time DESC
+		)`, person.Phone)
 	return lastCallOfPerson, err
 }
 
