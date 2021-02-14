@@ -13,13 +13,18 @@ import (
 // availability, times and location. Invitations will then be send out for that
 // call
 type Call struct {
-	ID        int       `db:"id"`
-	Title     string    `db:"title"`
-	CenterID  int       `db:"center_id"`
-	Capacity  int       `db:"capacity"`
-	TimeStart time.Time `db:"time_start"`
-	TimeEnd   time.Time `db:"time_end"`
-	Location  string    `db:"location"`
+	ID         int       `db:"id"`
+	Title      string    `db:"title"`
+	CenterID   int       `db:"center_id"`
+	Capacity   int       `db:"capacity"`
+	TimeStart  time.Time `db:"time_start"`
+	TimeEnd    time.Time `db:"time_end"`
+	LocName    string    `db:"loc_name"`
+	LocStreet  string    `db:"loc_street"`
+	LocHouseNr string    `db:"loc_housenr"`
+	LocPLZ     string    `db:"loc_plz"`
+	LocCity    string    `db:"loc_city"`
+	LocOpt     string    `db:"loc_opt"`
 }
 
 func todayAt(input string) (time.Time, error) {

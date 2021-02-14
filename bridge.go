@@ -36,7 +36,12 @@ CREATE TABLE IF NOT EXISTS calls (
 	capacity INTEGER NOT NULL,
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
-	location TEXT NOT NULL
+	loc_name TEXT NOT NULL,
+	loc_street TEXT NOT NULL,
+	loc_housenr TEXT NOT NULL,
+	loc_plz TEXT NOT NULL,
+	loc_city TEXT NOT NULL,
+	loc_opt TEXT
 );
 `
 
