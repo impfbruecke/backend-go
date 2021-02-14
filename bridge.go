@@ -208,7 +208,12 @@ func (b *Bridge) NotifyCall(id, numPersons int) error {
 			persons[k].Phone,
 			call.Call.TimeStart.Format("14:12"),
 			call.Call.TimeEnd.Format("14:12"),
-			call.Call.Location,
+			call.Call.LocName,
+			call.Call.LocStreet,
+			call.Call.LocHouseNr,
+			call.Call.LocPLZ,
+			call.Call.LocCity,
+			call.Call.LocOpt,
 		); err != nil {
 			log.Error(err)
 		}
@@ -224,8 +229,31 @@ func (b *Bridge) AddCall(call Call) error {
 
 	tx := b.db.MustBegin()
 	res, err := tx.NamedExec(
-		"INSERT INTO calls ( title, center_id, capacity, time_start, time_end, location) VALUES"+
-			"( :title, :center_id, :capacity, :time_start, :time_end, :location)", &call)
+		`INSERT INTO calls (
+			title,
+			center_id,
+			capacity,
+			time_start,
+			time_end,
+			loc_name,
+			loc_street,
+			loc_housenr,
+			loc_plz,
+			loc_city,
+			loc_opt
+		) VALUES (
+			:title,
+			:center_id,
+			:capacity,
+			:time_start,
+			:time_end,
+			:loc_name,
+			:loc_street,
+			:loc_housenr,
+			:loc_plz,
+			:loc_city,
+			:loc_opt
+		)`, &call)
 
 	rows, _ := res.RowsAffected()
 	log.Debugf("%v rows affected\n", rows)
@@ -370,8 +398,8 @@ func (b *Bridge) GetAcceptedPersons(id int) ([]Person, error) {
 	// err := b.db.Select(&persons, "SELECT * FROM persons where last_call_accepted=$1", id)
 	err := b.db.Select(&persons,
 		`SELECT persons.* FROM persons
-	    JOIN invitations ON
-	    persons.phone = invitations.phone
+		JOIN invitations ON
+		persons.phone = invitations.phone
 		AND invitations.status = 'accepted'
 		AND invitations.call_id=$1`, id)
 	if err != nil {
@@ -447,7 +475,12 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 			phoneNumber,
 			lastCall.TimeStart.Format("14:12"),
 			lastCall.TimeEnd.Format("14:12"),
-			lastCall.Location,
+			lastCall.LocName,
+			lastCall.LocStreet,
+			lastCall.LocHouseNr,
+			lastCall.LocPLZ,
+			lastCall.LocCity,
+			lastCall.LocOpt,
 			genOTP(phoneNumber, lastCall.ID),
 		); err != nil {
 			return err

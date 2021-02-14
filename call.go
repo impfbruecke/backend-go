@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/url"
 	"strconv"
 	"time"
@@ -71,27 +70,38 @@ func NewCall(data url.Values) (Call, []string, error) {
 		errorStrings = append(errorStrings, "Endzezeit ist nicht nach Startzeit")
 	}
 
-	// Validate location and title are not empty
-	location := data.Get("location")
-	if location == "" {
-		errorStrings = append(errorStrings, "Fehlender Ort")
-	}
+	// Get text fields and check that they are not empty strings
+	var locName, locStreet, locHouseNr, locPlz, locCity, locOpt, title string
 
-	title := data.Get("title")
-	if title == "" {
-		errorStrings = append(errorStrings, "Fehlender Titel")
-	}
-
-	if len(errorStrings) != 0 {
-		return Call{}, errorStrings, errors.New("Invalid data for call")
-	}
+	locName, errorStrings = getFormFieldWithErrors(data, "loc_name", errorStrings)
+	locStreet, errorStrings = getFormFieldWithErrors(data, "loc_street", errorStrings)
+	locHouseNr, errorStrings = getFormFieldWithErrors(data, "loc_housener", errorStrings)
+	locPlz, errorStrings = getFormFieldWithErrors(data, "loc_plz", errorStrings)
+	locCity, errorStrings = getFormFieldWithErrors(data, "loc_city", errorStrings)
+	locOpt, errorStrings = getFormFieldWithErrors(data, "loc_opt", errorStrings)
+	title, errorStrings = getFormFieldWithErrors(data, "title", errorStrings)
 
 	return Call{
-		Title:     title,
-		CenterID:  0, //TODO set centerID from contextString
-		Capacity:  capacity,
-		TimeStart: timeStart,
-		TimeEnd:   timeEnd,
-		Location:  location,
+		Title:      title,
+		CenterID:   0, //TODO set centerID from contextString
+		Capacity:   capacity,
+		TimeStart:  timeStart,
+		TimeEnd:    timeEnd,
+		LocName:    locName,
+		LocStreet:  locStreet,
+		LocHouseNr: locHouseNr,
+		LocPLZ:     locPlz,
+		LocCity:    locCity,
+		LocOpt:     locOpt,
 	}, errorStrings, nil
+}
+
+func getFormFieldWithErrors(data url.Values, formID string, errorStrings []string) (string, []string) {
+
+	value := data.Get(formID)
+	if value == "" {
+		errorStrings = append(errorStrings, "Ungültige Eingabe für: "+formID)
+	}
+
+	return value, errorStrings
 }

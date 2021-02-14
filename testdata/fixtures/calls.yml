@@ -4,7 +4,12 @@
   capacity: 1
   time_start: "2021-02-10 12:30:00+01:00"
   time_end: "2021-02-10 12:35:00+01:00"
-  location: "somewhere1"
+  loc_name: "loc_name1"
+  loc_street: "loc_street1"
+  loc_housenr: "loc_housenr1"
+  loc_plz: "loc_plz1"
+  loc_city: "loc_city1"
+  loc_opt: "loc_opt1"
 
 - id: 2
   title: "Call number 2"
@@ -12,4 +17,8 @@
   capacity: 2
   time_start: "2021-02-10 12:31:00+01:00"
   time_end: "2021-02-10 12:36:00+01:00"
-  location: "somewhere2"
+  loc_name: "loc_name2"
+  loc_street: "loc_street2"
+  loc_housenr: "loc_housenr2"
+  loc_plz: "loc_plz2"
+  loc_city: "loc_city2"
