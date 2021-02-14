@@ -5,6 +5,7 @@
   time_start: "2021-02-10 12:30:00+01:00"
   time_end: "2021-02-10 12:35:00+01:00"
   loc_name: "loc_name1"
+  young_only: true
   loc_street: "loc_street1"
   loc_housenr: "loc_housenr1"
   loc_plz: "loc_plz1"
@@ -17,6 +18,7 @@
   capacity: 2
   time_start: "2021-02-10 12:31:00+01:00"
   time_end: "2021-02-10 12:36:00+01:00"
+  young_only: false
   loc_name: "loc_name2"
   loc_street: "loc_street2"
   loc_housenr: "loc_housenr2"
