@@ -3,6 +3,7 @@ module github.com/impfbruecke/backend-go
 go 1.15
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-testfixtures/testfixtures v2.5.1+incompatible // indirect
 	github.com/go-testfixtures/testfixtures/v3 v3.5.0
