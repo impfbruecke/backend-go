@@ -270,6 +270,7 @@ func TestBridge_GetCallStatus(t *testing.T) {
 					LocName:    "loc_name1",
 					LocStreet:  "loc_street1",
 					LocHouseNr: "loc_housenr1",
+					YoungOnly:  true,
 					LocPLZ:     "loc_plz1",
 					LocCity:    "loc_city1",
 					LocOpt:     "loc_opt1",
