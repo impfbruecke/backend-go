@@ -60,6 +60,26 @@ var (
 			LocOpt:     "loc_opt3",
 		},
 	}
+	fixturePersons []Person = []Person{
+		{
+			Phone:    "1230",
+			CenterID: 0,
+			Group:    1,
+			Status:   false,
+		},
+		{
+			Phone:    "1231",
+			CenterID: 0,
+			Group:    2,
+			Status:   false,
+		},
+		{
+			Phone:    "1232",
+			CenterID: 0,
+			Group:    1,
+			Status:   true,
+		},
+	}
 )
 
 func TestMain(m *testing.M) {
@@ -137,12 +157,8 @@ func TestBridge_GetPersons(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Retrieve persons from DB",
-			want: []Person{
-				{Phone: "1230", CenterID: 0, Group: 1, Status: false},
-				{Phone: "1231", CenterID: 0, Group: 1, Status: false},
-				{Phone: "1232", CenterID: 0, Group: 1, Status: false},
-			},
+			name:    "Retrieve persons from DB",
+			want:    fixturePersons,
 			wantErr: false,
 		},
 	}
@@ -174,8 +190,8 @@ func TestBridge_GetAcceptedPersons(t *testing.T) {
 			name: "Call with accepted invitations",
 			id:   1,
 			want: []Person{
-				{Phone: "1230", Group: 1},
-				{Phone: "1231", Group: 1},
+				fixturePersons[0],
+				fixturePersons[1],
 			},
 			wantErr: false,
 		},
@@ -223,9 +239,9 @@ func TestBridge_AddPerson(t *testing.T) {
 				Status:   false,
 			},
 			want: []Person{
-				{Phone: "1230", Group: 1},
-				{Phone: "1231", Group: 1},
-				{Phone: "1232", Group: 1},
+				fixturePersons[0],
+				fixturePersons[1],
+				fixturePersons[2],
 				{"0001", 0, 1, false},
 			}, wantErr: false,
 		},
@@ -264,9 +280,10 @@ func TestBridge_AddPersons(t *testing.T) {
 				{"0002", 0, 1, false},
 			},
 			want: []Person{
-				{Phone: "1230", Group: 1},
-				{Phone: "1231", Group: 1},
-				{Phone: "1232", Group: 1},
+
+				fixturePersons[0],
+				fixturePersons[1],
+				fixturePersons[2],
 				{"0001", 0, 1, false},
 				{"0002", 0, 1, false},
 			},
@@ -307,8 +324,8 @@ func TestBridge_GetCallStatus(t *testing.T) {
 			want: CallStatus{
 				Call: fixtureCalls[0],
 				Persons: []Person{
-					{"1230", 0, 1, false},
-					{"1231", 0, 1, false},
+					fixturePersons[0],
+					fixturePersons[1],
 				},
 			},
 			wantErr: false,
@@ -524,9 +541,9 @@ func TestBridge_LastCallNotified(t *testing.T) {
 		want    Call
 		wantErr bool
 	}{
-		{"Phone 1230", Person{Phone: "1230"}, fixtureCalls[0], false},
-		{"Phone 1231", Person{Phone: "1231"}, fixtureCalls[0], false},
-		{"Phone 1232", Person{Phone: "1232"}, fixtureCalls[1], false},
+		{"Phone 1230", fixturePersons[0], fixtureCalls[0], false},
+		{"Phone 1231", fixturePersons[1], fixtureCalls[0], false},
+		{"Phone 1232", fixturePersons[2], fixtureCalls[1], false},
 		{"Phone noexist", Person{Phone: "noexist"}, Call{}, true},
 	}
 	for _, tt := range tests {
@@ -603,30 +620,36 @@ func TestBridge_PersonCancelCall(t *testing.T) {
 }
 
 func TestBridge_PersonDelete(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		phoneNumber string
-	}
+
+	prepareTestDatabase()
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name        string
+		phoneNumber string
+		want        []Person
+		wantErr     bool
 	}{
+		{"Remove 1230", "1230", []Person{fixturePersons[1], fixturePersons[2]}, false},
+		{"Remove 1231", "1231", []Person{fixturePersons[2]}, false},
+		{"Remove 1232", "1232", []Person{}, false},
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.PersonDelete(tt.args.phoneNumber); (err != nil) != tt.wantErr {
+
+			if err := bridge.PersonDelete(tt.phoneNumber); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.PersonDelete() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			got, err := bridge.GetPersons()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bridge.GetPersons() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetPersons() after deleting mismatch (-want +got):\n%s", diff)
+			}
+
 		})
 	}
 }

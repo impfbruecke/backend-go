@@ -5,10 +5,10 @@
 
 - phone: "1231"
   center_id: 0
-  group_num: 1
+  group_num: 2
   status: 0
 
 - phone: "1232"
   center_id: 0
   group_num: 1
-  status: 0
+  status: 1
