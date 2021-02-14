@@ -17,6 +17,49 @@ import (
 var (
 	fixtures *testfixtures.Loader
 	sender   *TwillioSender
+	loc      = time.FixedZone("+0100", 3600)
+
+	fixtureCalls []Call = []Call{
+		{
+			ID:         1,
+			Title:      "Call number 1",
+			Capacity:   1,
+			TimeStart:  time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
+			TimeEnd:    time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
+			YoungOnly:  true,
+			LocName:    "loc_name1",
+			LocStreet:  "loc_street1",
+			LocHouseNr: "loc_housenr1",
+			LocPLZ:     "loc_plz1",
+			LocCity:    "loc_city1",
+			LocOpt:     "loc_opt1",
+		},
+		{
+			ID:         2,
+			Title:      "Call number 2",
+			Capacity:   2,
+			TimeStart:  time.Date(2021, time.February, 10, 12, 31, 0, 0, loc),
+			TimeEnd:    time.Date(2021, time.February, 10, 12, 36, 0, 0, loc),
+			LocName:    "loc_name2",
+			LocStreet:  "loc_street2",
+			LocHouseNr: "loc_housenr2",
+			LocPLZ:     "loc_plz2",
+			LocCity:    "loc_city2",
+		},
+		{
+			ID:         3,
+			Title:      "Call number 3",
+			Capacity:   3,
+			TimeStart:  time.Date(2021, time.January, 1, 12, 30, 0, 0, loc),
+			TimeEnd:    time.Date(2021, time.January, 1, 12, 35, 0, 0, loc),
+			LocName:    "loc_name3",
+			LocStreet:  "loc_street3",
+			LocHouseNr: "loc_housenr3",
+			LocPLZ:     "loc_plz3",
+			LocCity:    "loc_city3",
+			LocOpt:     "loc_opt3",
+		},
+	}
 )
 
 func TestMain(m *testing.M) {
@@ -25,6 +68,11 @@ func TestMain(m *testing.M) {
 	// 2021-01-01 20:00:00 +0000 UTC
 	monkey.Patch(time.Now, func() time.Time { return time.Date(2021, 1, 1, 20, 0, 0, 0, time.UTC) })
 	fmt.Println("Time is now ", time.Now())
+
+	os.Exit(m.Run())
+}
+
+func prepareTestDatabase() {
 
 	var err error
 
@@ -51,10 +99,8 @@ func TestMain(m *testing.M) {
 	db.MustExec(schemaUsers)
 	db.MustExec(schemaNotifications)
 
-	fmt.Println("creating sender")
 	sender = NewTwillioSender("test", "test", "test", "test")
 
-	fmt.Println("creating bridge")
 	bridge = &Bridge{
 		db:     db,
 		sender: sender,
@@ -63,8 +109,6 @@ func TestMain(m *testing.M) {
 	// Open connection to the test database.
 	// Do NOT import fixtures in a production database!
 	// Existing data would be deleted.
-
-	fmt.Println("creating fixtures")
 	fixtures, err = testfixtures.New(
 		testfixtures.Database(db.DB),                              // You database connection
 		testfixtures.Dialect("sqlite"),                            // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
@@ -76,10 +120,6 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	os.Exit(m.Run())
-}
-
-func prepareTestDatabase() {
 	if err := fixtures.Load(); err != nil {
 		fmt.Println("Loading fixtures")
 		panic(err)
@@ -255,8 +295,6 @@ func TestBridge_GetCallStatus(t *testing.T) {
 
 	prepareTestDatabase()
 
-	loc := time.FixedZone("myzone", 3600)
-
 	tests := []struct {
 		name    string
 		id      string
@@ -267,21 +305,7 @@ func TestBridge_GetCallStatus(t *testing.T) {
 			name: "Get a valid callstatus",
 			id:   "1",
 			want: CallStatus{
-				Call: Call{
-					ID:         1,
-					Title:      "Call number 1",
-					CenterID:   0,
-					Capacity:   1,
-					TimeStart:  time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
-					TimeEnd:    time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
-					LocName:    "loc_name1",
-					LocStreet:  "loc_street1",
-					LocHouseNr: "loc_housenr1",
-					YoungOnly:  true,
-					LocPLZ:     "loc_plz1",
-					LocCity:    "loc_city1",
-					LocOpt:     "loc_opt1",
-				},
+				Call: fixtureCalls[0],
 				Persons: []Person{
 					{"1230", 0, 1, false},
 					{"1231", 0, 1, false},
@@ -309,8 +333,6 @@ func TestBridge_GetActiveCalls(t *testing.T) {
 
 	prepareTestDatabase()
 
-	loc := time.FixedZone("myzone", 3600)
-
 	tests := []struct {
 		name    string
 		want    []Call
@@ -319,33 +341,8 @@ func TestBridge_GetActiveCalls(t *testing.T) {
 		{
 			name: "Get two active calls",
 			want: []Call{
-
-				{
-					ID:         1,
-					Title:      "Call number 1",
-					Capacity:   1,
-					TimeStart:  time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
-					TimeEnd:    time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
-					YoungOnly:  true,
-					LocName:    "loc_name1",
-					LocStreet:  "loc_street1",
-					LocHouseNr: "loc_housenr1",
-					LocPLZ:     "loc_plz1",
-					LocCity:    "loc_city1",
-					LocOpt:     "loc_opt1",
-				},
-				{
-					ID:         2,
-					Title:      "Call number 2",
-					Capacity:   2,
-					TimeStart:  time.Date(2021, time.February, 10, 12, 31, 0, 0, loc),
-					TimeEnd:    time.Date(2021, time.February, 10, 12, 36, 0, 0, loc),
-					LocName:    "loc_name2",
-					LocStreet:  "loc_street2",
-					LocHouseNr: "loc_housenr2",
-					LocPLZ:     "loc_plz2",
-					LocCity:    "loc_city2",
-				},
+				fixtureCalls[0],
+				fixtureCalls[1],
 			},
 			wantErr: false,
 		},
@@ -418,24 +415,32 @@ func TestNewBridge(t *testing.T) {
 }
 
 func TestBridge_DeleteOldCalls(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
 	tests := []struct {
-		name   string
-		fields fields
+		name string
+		want []Call
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get all calls after running deletion",
+			want: []Call{
+				fixtureCalls[0],
+				fixtureCalls[1],
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			b.DeleteOldCalls()
+			bridge.DeleteOldCalls()
 		})
+
+		got, err := bridge.GetAllCalls()
+		if err != nil {
+			t.Errorf("Bridge.GetAllCalls() error = %v", err)
+			return
+		}
+
+		if diff := cmp.Diff(tt.want, got); diff != "" {
+			t.Errorf("Bridge.GetActive() mismatch (-want +got):\n%s", diff)
+		}
 	}
 }
 
@@ -462,29 +467,21 @@ func TestBridge_SendNotifications(t *testing.T) {
 }
 
 func TestBridge_NotifyCall(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		id         int
-		numPersons int
-	}
+
+	prepareTestDatabase()
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name       string
+		callID     int
+		numPersons int
+		wantErr    bool
 	}{
+
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.NotifyCall(tt.args.id, tt.args.numPersons); (err != nil) != tt.wantErr {
+			if err := bridge.NotifyCall(tt.callID, tt.numPersons); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.NotifyCall() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -492,29 +489,21 @@ func TestBridge_NotifyCall(t *testing.T) {
 }
 
 func TestBridge_CallFull(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		call Call
-	}
+	prepareTestDatabase()
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		call    Call
 		want    bool
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{"Get full call (ID:1)", fixtureCalls[0], true, false},
+		{"Get not full call (ID:2)", fixtureCalls[1], false, false},
+		{"Get not full call (ID:3)", fixtureCalls[2], false, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.CallFull(tt.args.call)
+			got, err := bridge.CallFull(tt.call)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.CallFull() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -643,6 +632,65 @@ func TestBridge_PersonDelete(t *testing.T) {
 			}
 			if err := b.PersonDelete(tt.args.phoneNumber); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.PersonDelete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestBridge_AddCall(t *testing.T) {
+	type fields struct {
+		db     *sqlx.DB
+		sender *TwillioSender
+	}
+	type args struct {
+		call Call
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := &Bridge{
+				db:     tt.fields.db,
+				sender: tt.fields.sender,
+			}
+			if err := b.AddCall(tt.args.call); (err != nil) != tt.wantErr {
+				t.Errorf("Bridge.AddCall() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestBridge_GetAllCalls(t *testing.T) {
+
+	prepareTestDatabase()
+
+	tests := []struct {
+		name    string
+		want    []Call
+		wantErr bool
+	}{
+		{
+			name:    "Retrieve calls from DB",
+			want:    fixtureCalls,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := bridge.GetAllCalls()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bridge.GetAllCalls() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetAllCalls() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

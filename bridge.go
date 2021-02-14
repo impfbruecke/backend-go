@@ -358,6 +358,23 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 	return calls, err
 }
 
+// GetAllCalls returns a list of all calls
+func (b *Bridge) GetAllCalls() ([]Call, error) {
+
+	// Query the database, storing results in a []User (wrapped in []interface{})
+	calls := []Call{}
+	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")j
+	err := b.db.Select(&calls, "SELECT * FROM calls")
+
+	if err != nil {
+		log.Error(err)
+		return calls, err
+	}
+
+	log.Debugf("Found calls: %+v\n", calls)
+	return calls, err
+}
+
 // GetNextPersonsForCall finds the next `num` persons that should be notified
 // for a callID. Selection is based on group_num
 //TODO FIXME
@@ -434,8 +451,10 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 
 // CallFull is true if the call is full. Used to check call status
 func (b *Bridge) CallFull(call Call) (bool, error) {
+
 	var numAccpets int
-	err := b.db.Get(numAccpets, "select count(id) from invitations where call_id=$1 and status='accepted'", call.ID)
+	err := b.db.Get(&numAccpets, "select count(id) from invitations where call_id=$1 and status='accepted'", call.ID)
+	log.Debugf("Checking full status for call %v: %v/%v", call.ID, numAccpets, call.Capacity)
 	return numAccpets >= call.Capacity, err
 }
 
