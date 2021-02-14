@@ -380,18 +380,10 @@ func TestBridge_GetActiveCalls(t *testing.T) {
 }
 
 func TestBridge_GetNextPersonsForCall(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		num    int
-		callID int
-	}
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		num     int
+		callID  int
 		want    []Person
 		wantErr bool
 	}{
@@ -399,11 +391,7 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.GetNextPersonsForCall(tt.args.num, tt.args.callID)
+			got, err := bridge.GetNextPersonsForCall(tt.num, tt.callID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.GetNextPersonsForCall() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -411,6 +399,15 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Bridge.GetNextPersonsForCall() = %v, want %v", got, tt.want)
 			}
+
+			// TODO check:
+			// lower group numbers should always go first
+			// order within one group should be randomized
+			// return full number of persons if enough in db, not more or less
+			// return less persons if not enough available in the database
+			// check if all persons meet only_young criteria
+			// check not already notified persons are retrieved
+			// check persons notified for a different call are retrieved
 		})
 	}
 }
