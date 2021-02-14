@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/url"
 	"strconv"
 	"time"
@@ -13,13 +12,18 @@ import (
 // availability, times and location. Invitations will then be send out for that
 // call
 type Call struct {
-	ID        int       `db:"id"`
-	Title     string    `db:"title"`
-	CenterID  int       `db:"center_id"`
-	Capacity  int       `db:"capacity"`
-	TimeStart time.Time `db:"time_start"`
-	TimeEnd   time.Time `db:"time_end"`
-	Location  string    `db:"location"`
+	ID         int       `db:"id"`
+	Title      string    `db:"title"`
+	CenterID   int       `db:"center_id"`
+	Capacity   int       `db:"capacity"`
+	TimeStart  time.Time `db:"time_start"`
+	TimeEnd    time.Time `db:"time_end"`
+	LocName    string    `db:"loc_name"`
+	LocStreet  string    `db:"loc_street"`
+	LocHouseNr string    `db:"loc_housenr"`
+	LocPLZ     string    `db:"loc_plz"`
+	LocCity    string    `db:"loc_city"`
+	LocOpt     string    `db:"loc_opt"`
 }
 
 func todayAt(input string) (time.Time, error) {
@@ -66,27 +70,38 @@ func NewCall(data url.Values) (Call, []string, error) {
 		errorStrings = append(errorStrings, "Endzezeit ist nicht nach Startzeit")
 	}
 
-	// Validate location and title are not empty
-	location := data.Get("location")
-	if location == "" {
-		errorStrings = append(errorStrings, "Fehlender Ort")
-	}
+	// Get text fields and check that they are not empty strings
+	var locName, locStreet, locHouseNr, locPlz, locCity, locOpt, title string
 
-	title := data.Get("title")
-	if title == "" {
-		errorStrings = append(errorStrings, "Fehlender Titel")
-	}
-
-	if len(errorStrings) != 0 {
-		return Call{}, errorStrings, errors.New("Invalid data for call")
-	}
+	locName, errorStrings = getFormFieldWithErrors(data, "loc_name", errorStrings)
+	locStreet, errorStrings = getFormFieldWithErrors(data, "loc_street", errorStrings)
+	locHouseNr, errorStrings = getFormFieldWithErrors(data, "loc_housener", errorStrings)
+	locPlz, errorStrings = getFormFieldWithErrors(data, "loc_plz", errorStrings)
+	locCity, errorStrings = getFormFieldWithErrors(data, "loc_city", errorStrings)
+	locOpt, errorStrings = getFormFieldWithErrors(data, "loc_opt", errorStrings)
+	title, errorStrings = getFormFieldWithErrors(data, "title", errorStrings)
 
 	return Call{
-		Title:     title,
-		CenterID:  0, //TODO set centerID from contextString
-		Capacity:  capacity,
-		TimeStart: timeStart,
-		TimeEnd:   timeEnd,
-		Location:  location,
+		Title:      title,
+		CenterID:   0, //TODO set centerID from contextString
+		Capacity:   capacity,
+		TimeStart:  timeStart,
+		TimeEnd:    timeEnd,
+		LocName:    locName,
+		LocStreet:  locStreet,
+		LocHouseNr: locHouseNr,
+		LocPLZ:     locPlz,
+		LocCity:    locCity,
+		LocOpt:     locOpt,
 	}, errorStrings, nil
+}
+
+func getFormFieldWithErrors(data url.Values, formID string, errorStrings []string) (string, []string) {
+
+	value := data.Get(formID)
+	if value == "" {
+		errorStrings = append(errorStrings, "Ungültige Eingabe für: "+formID)
+	}
+
+	return value, errorStrings
 }

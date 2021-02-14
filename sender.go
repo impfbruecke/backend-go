@@ -3,11 +3,13 @@ package main
 import (
 	// "bytes"
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // TwillioSender abstracts interactions with the twilio API
@@ -83,8 +85,12 @@ func (s TwillioSender) SendMessageOnboarding(toPhone string) error {
 }
 
 // SendMessageNotify send the invitation message when the person is invited to a call
-func (s TwillioSender) SendMessageNotify(toPhone, start, end, location string) error {
-	msg := "Sie haben die Möglichkeit zur Corona-Impfung, heute " + start + "-" + end + "h " + location + ". Antworten Sie für Zusage mit \"JA\""
+func (s TwillioSender) SendMessageNotify(toPhone, start, end, locName, locStreet, locHouseNr, locPLZ, locCity, locOpt string) error {
+	msg := fmt.Sprintf(
+		// TODO make this a template instead of interpolating the string with vars manually
+		`Sie haben die Möglichkeit zur Corona-Impfung, heute %s-%sh in %s %s %s %s %s %s. Antworten Sie für Zusage mit "JA"`,
+		start, end, locName, locStreet, locHouseNr, locPLZ, locCity, locOpt,
+	)
 	return s.SendMessage(toPhone, msg)
 }
 
@@ -97,8 +103,14 @@ func (s TwillioSender) SendMessageReject(toPhone string) error {
 
 // SendMessageAccept sends the acceptance message when a person replies to a
 // call in time and has been given a spot
-func (s TwillioSender) SendMessageAccept(toPhone, start, end, location, otp string) error {
-	msg := "Termin bestätigt. " + location + ", heute " + start + "-" + end + "h . ID: " + otp + ". Falls Sie den Termin nicht wahrnehmen können, bitte \"STORNO\" antworten."
+func (s TwillioSender) SendMessageAccept(toPhone, start, end, locName, locStreet, locHouseNr, locPLZ, locCity, locOpt, otp string) error {
+	// msg := "Termin bestätigt. " + locaName + ", heute " + start + "-" + end + "h . ID: " + otp + ". Falls Sie den Termin nicht wahrnehmen können, bitte \"STORNO\" antworten."
+
+	// TODO make this a template instead of interpolating the string with vars manually
+	msg := fmt.Sprintf(
+		`Termin bestätigt %s-%sh in %s %s %s %s %s %s. Falls Sie den Termin nicht wahrnehmen können, bitte \"STORNO\" antworten. Ihre ID ist: %v`,
+		start, end, locName, locStreet, locHouseNr, locPLZ, locCity, locOpt, otp,
+	)
 	return s.SendMessage(toPhone, msg)
 }
 
