@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"bou.ke/monkey"
 	testfixtures "github.com/go-testfixtures/testfixtures/v3"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
@@ -19,6 +20,12 @@ var (
 )
 
 func TestMain(m *testing.M) {
+
+	// Fix current time inside tests to:
+	// 2021-01-01 20:00:00 +0000 UTC
+	monkey.Patch(time.Now, func() time.Time { return time.Date(2021, 1, 1, 20, 0, 0, 0, time.UTC) })
+	fmt.Println("Time is now ", time.Now())
+
 	var err error
 
 	if _, err := os.Stat("./test.db"); err == nil {
@@ -299,31 +306,60 @@ func TestBridge_GetCallStatus(t *testing.T) {
 }
 
 func TestBridge_GetActiveCalls(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
+
+	prepareTestDatabase()
+
+	loc := time.FixedZone("myzone", 3600)
+
 	tests := []struct {
 		name    string
-		fields  fields
 		want    []Call
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Get two active calls",
+			want: []Call{
+
+				{
+					ID:         1,
+					Title:      "Call number 1",
+					Capacity:   1,
+					TimeStart:  time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
+					TimeEnd:    time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
+					YoungOnly:  true,
+					LocName:    "loc_name1",
+					LocStreet:  "loc_street1",
+					LocHouseNr: "loc_housenr1",
+					LocPLZ:     "loc_plz1",
+					LocCity:    "loc_city1",
+					LocOpt:     "loc_opt1",
+				},
+				{
+					ID:         2,
+					Title:      "Call number 2",
+					Capacity:   2,
+					TimeStart:  time.Date(2021, time.February, 10, 12, 31, 0, 0, loc),
+					TimeEnd:    time.Date(2021, time.February, 10, 12, 36, 0, 0, loc),
+					LocName:    "loc_name2",
+					LocStreet:  "loc_street2",
+					LocHouseNr: "loc_housenr2",
+					LocPLZ:     "loc_plz2",
+					LocCity:    "loc_city2",
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.GetActiveCalls()
+			got, err := bridge.GetActiveCalls()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.GetActiveCalls() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bridge.GetActiveCalls() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetActive() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

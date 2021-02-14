@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS calls (
 	loc_housenr TEXT NOT NULL,
 	loc_plz TEXT NOT NULL,
 	loc_city TEXT NOT NULL,
-	loc_opt TEXT
+	loc_opt TEXT NOT NULL
 );
 `
 

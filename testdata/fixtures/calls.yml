@@ -24,3 +24,18 @@
   loc_housenr: "loc_housenr2"
   loc_plz: "loc_plz2"
   loc_city: "loc_city2"
+  loc_opt: ""
+
+- id: 3
+  title: "Call number 3"
+  center_id: 0
+  capacity: 3
+  time_start: "2021-01-01 12:30:00+01:00"
+  time_end: "2021-01-01 12:35:00+01:00"
+  young_only: false
+  loc_name: "loc_name3"
+  loc_street: "loc_street3"
+  loc_housenr: "loc_housenr3"
+  loc_plz: "loc_plz3"
+  loc_city: "loc_city3"
+  loc_opt: "loc_opt3"
