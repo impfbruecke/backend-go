@@ -444,6 +444,9 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 			}
 
 			invitations, err := bridge.GetInvitations()
+			if err != nil {
+				panic(err)
+			}
 
 			// Find highest selected group in results
 			highestGroup := 0
@@ -552,6 +555,7 @@ func TestNewBridge(t *testing.T) {
 func TestBridge_DeleteOldCalls(t *testing.T) {
 
 	prepareTestDatabase()
+
 	tests := []struct {
 		name string
 		want []Call
