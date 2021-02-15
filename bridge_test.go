@@ -821,11 +821,11 @@ func TestBridge_PersonAcceptLastCall(t *testing.T) {
 				Time:   time.Now(),
 			},
 			gotBefore[0],
-			gotBefore[3],
 			gotBefore[2],
+			gotBefore[3],
 			gotBefore[4],
 		}, false},
-		{"Phone 1232", "1232", gotBefore, true},
+		{"Phone 1232", "1232", gotBefore, false},
 		{"Phone noexist", "noexist", gotBefore, true},
 	}
 	for _, tt := range tests {
