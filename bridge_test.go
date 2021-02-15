@@ -27,7 +27,8 @@ var (
 			Capacity:   1,
 			TimeStart:  time.Date(2021, time.February, 10, 12, 30, 0, 0, loc),
 			TimeEnd:    time.Date(2021, time.February, 10, 12, 35, 0, 0, loc),
-			YoungOnly:  true,
+			AgeMin:     0,
+			AgeMax:     100,
 			LocName:    "loc_name1",
 			LocStreet:  "loc_street1",
 			LocHouseNr: "loc_housenr1",
@@ -41,6 +42,8 @@ var (
 			Capacity:   2,
 			TimeStart:  time.Date(2021, time.February, 10, 12, 31, 0, 0, loc),
 			TimeEnd:    time.Date(2021, time.February, 10, 12, 36, 0, 0, loc),
+			AgeMin:     0,
+			AgeMax:     70,
 			LocName:    "loc_name2",
 			LocStreet:  "loc_street2",
 			LocHouseNr: "loc_housenr2",
@@ -53,6 +56,8 @@ var (
 			Capacity:   3,
 			TimeStart:  time.Date(2021, time.January, 1, 12, 30, 0, 0, loc),
 			TimeEnd:    time.Date(2021, time.January, 1, 12, 35, 0, 0, loc),
+			AgeMin:     70,
+			AgeMax:     200,
 			LocName:    "loc_name3",
 			LocStreet:  "loc_street3",
 			LocHouseNr: "loc_housenr3",
@@ -238,12 +243,13 @@ func TestBridge_AddPerson(t *testing.T) {
 				CenterID: 0,
 				Group:    1,
 				Status:   false,
+				Age:      80,
 			},
 			want: []Person{
 				fixturePersons[0],
 				fixturePersons[1],
 				fixturePersons[2],
-				{"0001", 0, 1, false},
+				{"0001", 0, 1, false, 80},
 			}, wantErr: false,
 		},
 	}
@@ -277,16 +283,16 @@ func TestBridge_AddPersons(t *testing.T) {
 		{
 			name: "Add two persons",
 			persons: []Person{
-				{"0001", 0, 1, false},
-				{"0002", 0, 1, false},
+				{"0001", 0, 1, false, 40},
+				{"0002", 0, 1, false, 90},
 			},
 			want: []Person{
 
 				fixturePersons[0],
 				fixturePersons[1],
 				fixturePersons[2],
-				{"0001", 0, 1, false},
-				{"0002", 0, 1, false},
+				{"0001", 0, 1, false, 40},
+				{"0002", 0, 1, false, 90},
 			},
 			wantErr: false,
 		},
@@ -502,9 +508,9 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 					return
 				}
 
-				// check if all persons meet only_young criteria (no old persons in call for young only)
-				if !v.Young && call.Call.YoungOnly {
-					t.Errorf("Bridge.GetNextPersonsForCall returned person not compatible with call: %v\n", v.Phone)
+				// check if all persons age criteria
+				if v.Age > call.Call.AgeMax || v.Age < call.Call.AgeMin {
+					t.Errorf("Bridge.GetNextPersonsForCall returned person outside of allowed age range, phone: %v\n", v.Phone)
 					return
 				}
 			}
