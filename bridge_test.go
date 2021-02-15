@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
 	"strconv"
@@ -16,7 +17,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-	"net/http"
 )
 
 // Custom type that allows setting the func that our Mock Do func will run
@@ -34,6 +34,8 @@ var (
 	fixtures *testfixtures.Loader
 	sender   *TwillioSender
 	loc      = time.FixedZone("+0100", 3600)
+
+	fakeNow time.Time = time.Date(2999, 1, 1, 20, 0, 0, 0, time.UTC)
 
 	fixtureCalls []Call = []Call{
 		{
@@ -854,35 +856,6 @@ func TestBridge_PersonAcceptLastCall(t *testing.T) {
 	}
 }
 
-func TestBridge_PersonCancelCall(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
-	type args struct {
-		phoneNumber string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.PersonCancelCall(tt.args.phoneNumber); (err != nil) != tt.wantErr {
-				t.Errorf("Bridge.PersonCancelCall() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestBridge_PersonDelete(t *testing.T) {
 
 	prepareTestDatabase()
@@ -1000,6 +973,140 @@ func TestBridge_GetInvitations(t *testing.T) {
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("Bridge.GetInvitations() mismatch (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestBridge_PersonCancelAllCalls(t *testing.T) {
+	prepareTestDatabase("testdata/fixtures/TestBridge_PersonCancelAllCalls/invitations.yml")
+
+	gotBefore, err := bridge.GetInvitations()
+	if err != nil {
+		panic(err)
+	}
+
+	tests := []struct {
+		name        string
+		phoneNumber string
+		want        []Invitation
+		wantErr     bool
+	}{
+		{
+			"Cancel Calls of phone 1230",
+			"1230",
+			[]Invitation{
+				{
+					ID:     0,
+					Phone:  "1230",
+					CallID: 1,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+				{
+					ID:     1,
+					Phone:  "1230",
+					CallID: 2,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+				gotBefore[2],
+				gotBefore[3],
+				gotBefore[4],
+				gotBefore[5],
+				gotBefore[6],
+				gotBefore[7],
+			},
+			false},
+		{
+			"Cancel Calls of phone 1231",
+			"1231",
+			[]Invitation{
+				{
+					ID:     0,
+					Phone:  "1230",
+					CallID: 1,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+				{
+					ID:     1,
+					Phone:  "1230",
+					CallID: 2,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+
+				{
+					ID:     4,
+					Phone:  "1231",
+					CallID: 1,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+				{
+					ID:     5,
+					Phone:  "1231",
+					CallID: 2,
+					Status: "cancelled",
+					Time:   fakeNow,
+				},
+				gotBefore[2],
+				gotBefore[3],
+				gotBefore[6],
+				gotBefore[7],
+			},
+			false},
+		{"Cancel Calls of phone noexist", "noexist", []Invitation{
+			{
+				ID:     0,
+				Phone:  "1230",
+				CallID: 1,
+				Status: "cancelled",
+				Time:   fakeNow,
+			},
+			{
+				ID:     1,
+				Phone:  "1230",
+				CallID: 2,
+				Status: "cancelled",
+				Time:   fakeNow,
+			},
+
+			{
+				ID:     4,
+				Phone:  "1231",
+				CallID: 1,
+				Status: "cancelled",
+				Time:   fakeNow,
+			},
+			{
+				ID:     5,
+				Phone:  "1231",
+				CallID: 2,
+				Status: "cancelled",
+				Time:   fakeNow,
+			},
+			gotBefore[2],
+			gotBefore[3],
+			gotBefore[6],
+			gotBefore[7],
+		}, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := bridge.PersonCancelAllCalls(tt.phoneNumber); (err != nil) != tt.wantErr {
+				t.Errorf("Bridge.PersonCancelAllCalls() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			got, err := bridge.GetInvitations()
+			if err != nil {
+				panic(err)
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetInvitations() mismatch (-want +got):\n%s", diff)
+			}
+
 		})
 	}
 }

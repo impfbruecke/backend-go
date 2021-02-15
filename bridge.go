@@ -607,15 +607,19 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 	return err
 }
 
-// PersonCancelCall cancels the last call a person was invited to
-func (b *Bridge) PersonCancelCall(phoneNumber string) error {
+// PersonCancelAllCalls cancels all accepted calls
+func (b *Bridge) PersonCancelAllCalls(phoneNumber string) error {
 
 	log.Debugf("Cancelling call for number %s\n", phoneNumber)
 
 	_, err := bridge.db.NamedExec(
-		`UPDATE invitations SET status = "cancelled" WHERE phone=:phone`,
+		`UPDATE invitations SET status=:newstatus, time=:time WHERE phone=:phone AND status=:oldstatus`,
+
 		map[string]interface{}{
-			"phone": phoneNumber,
+			"phone":     phoneNumber,
+			"oldstatus": InvitationAccepted,
+			"newstatus": InvitationCancelled,
+			"time":      time.Now(),
 		},
 	)
 
