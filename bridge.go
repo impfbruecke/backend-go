@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS persons (
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
 	status INTEGER NOT NULL,
-	young INTEGER NOT NULL
+	age INTEGER NOT NULL
 );
 `
 var schemaCalls = `
@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS calls (
 	capacity INTEGER NOT NULL,
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
-	young_only INTEGER NOT NULL,
+	age_min INTEGER NOT NULL,
+	age_max INTEGER NOT NULL,
 	loc_name TEXT NOT NULL,
 	loc_street TEXT NOT NULL,
 	loc_housenr TEXT NOT NULL,

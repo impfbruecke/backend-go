@@ -19,7 +19,8 @@ type Call struct {
 	Capacity   int       `db:"capacity"`
 	TimeStart  time.Time `db:"time_start"`
 	TimeEnd    time.Time `db:"time_end"`
-	YoungOnly  bool      `db:"young_only"`
+	AgeMin     int       `db:"age_min"`
+	AgeMax     int       `db:"age_max"`
 	LocName    string    `db:"loc_name"`
 	LocStreet  string    `db:"loc_street"`
 	LocHouseNr string    `db:"loc_housenr"`
@@ -56,6 +57,18 @@ func NewCall(data url.Values) (Call, []string, error) {
 		retError = err
 	}
 
+	ageMin, err := strconv.Atoi(data.Get("age_min"))
+	if err != nil || ageMin < 0 {
+		errorStrings = append(errorStrings, "Ungültiges Mindestalter")
+		retError = err
+	}
+
+	ageMax, err := strconv.Atoi(data.Get("age_max"))
+	if err != nil || ageMax > 200 {
+		errorStrings = append(errorStrings, "Ungültiges Höchstalter")
+		retError = err
+	}
+
 	// Validate start and end times make sense
 	log.Debug("start-time: ", data.Get("start-time"))
 	log.Debug("end-time: ", data.Get("end-time"))
@@ -79,7 +92,6 @@ func NewCall(data url.Values) (Call, []string, error) {
 
 	// Get text fields and check that they are not empty strings
 	var locName, locStreet, locHouseNr, locPlz, locCity, locOpt, title string
-	var youngOnly bool
 
 	locName, errorStrings = getFormFieldWithErrors(data, "loc_name", errorStrings)
 	locStreet, errorStrings = getFormFieldWithErrors(data, "loc_street", errorStrings)
@@ -88,11 +100,6 @@ func NewCall(data url.Values) (Call, []string, error) {
 	locCity, errorStrings = getFormFieldWithErrors(data, "loc_city", errorStrings)
 	locOpt, errorStrings = getFormFieldWithErrors(data, "loc_opt", errorStrings)
 	title, errorStrings = getFormFieldWithErrors(data, "title", errorStrings)
-
-	if youngOnly, err = strconv.ParseBool(data.Get("young_only")); err != nil {
-		errorStrings = append(errorStrings, "Ungültige Angabe für Impfstoff")
-		retError = err
-	}
 
 	if len(errorStrings) != 0 {
 		retError = errors.New("Missing input data")
@@ -114,7 +121,8 @@ func NewCall(data url.Values) (Call, []string, error) {
 		LocPLZ:     locPlz,
 		LocCity:    locCity,
 		LocOpt:     locOpt,
-		YoungOnly:  youngOnly,
+		AgeMin:     ageMin,
+		AgeMax:     ageMax,
 	}, errorStrings, retError
 }
 

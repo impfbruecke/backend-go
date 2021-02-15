@@ -44,6 +44,7 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		data := r.Form
 		phone := data.Get("phone")
 		group := data.Get("group")
+		age := data.Get("age")
 
 		// Try to create new call from input data
 		groupNum, err := strconv.Atoi(group)
@@ -51,6 +52,17 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Debug(err)
 			tData.AppMessages = append(tData.AppMessages, "Ungültige Gruppe")
+			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
+				log.Error(err)
+			}
+			return
+		}
+
+		ageNum, err := strconv.Atoi(age)
+
+		if err != nil {
+			log.Debug(err)
+			tData.AppMessages = append(tData.AppMessages, "Ungültiges Alter")
 			if err := templates.ExecuteTemplate(w, "importPersons.html", tData); err != nil {
 				log.Error(err)
 			}
@@ -65,7 +77,7 @@ func handlerAddPerson(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		person, err := NewPerson(0, groupNum, phone, false)
+		person, err := NewPerson(0, groupNum, phone, false, ageNum)
 		if err != nil {
 			log.Debug(err)
 			tData.AppMessages = append(tData.AppMessages, "Eingaben ungültig")

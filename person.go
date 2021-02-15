@@ -16,17 +16,18 @@ type Person struct {
 	CenterID int    `db:"center_id"` // ID of center that added this person
 	Group    int    `db:"group_num"` // Vaccination group
 	Status   bool   `db:"status"`    // Vaccination status
-	Young    bool   `db:"young"`     // Can be vacciated with any serum
+	Age      int    `db:"age"`       // Age of the person, to determine compatible vaccines
 }
 
 // NewPerson receives the input data and returns a slice of person objects. For
 // single import this will just be an array with a single entry, for CSV upload
 // it may be longer.
-func NewPerson(centerID, group int, phone string, status bool) (Person, error) {
+func NewPerson(centerID, group int, phone string, status bool, age int) (Person, error) {
 
 	person := Person{
 		CenterID: centerID,
 		Status:   status,
+		Age:      age,
 	}
 
 	num, err := libphonenumber.Parse(phone, "DE")
