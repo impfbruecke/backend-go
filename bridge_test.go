@@ -89,6 +89,29 @@ var (
 			Status:   true,
 		},
 	}
+
+	fixtureInvitations []Invitation = []Invitation{
+		{
+			Phone:  "1230",
+			CallID: 1,
+			Status: "accepted",
+			Time:   time.Date(2021, 2, 10, 12, 36, 0, 0, loc),
+		},
+		{
+			ID:     1,
+			Phone:  "1231",
+			CallID: 1,
+			Status: "accepted",
+			Time:   time.Date(2021, 2, 10, 12, 36, 0, 0, loc),
+		},
+		{
+			ID:     2,
+			Phone:  "1232",
+			CallID: 2,
+			Status: "rejected",
+			Time:   time.Date(2021, 2, 10, 12, 36, 0, 0, loc),
+		},
+	}
 )
 
 func TestMain(m *testing.M) {
@@ -838,31 +861,23 @@ func TestBridge_GetAllCalls(t *testing.T) {
 }
 
 func TestBridge_GetInvitations(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
-	}
 	tests := []struct {
 		name    string
-		fields  fields
 		want    []Invitation
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{"Retrieve all invitations from DB", fixtureInvitations, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			got, err := b.GetInvitations()
+			got, err := bridge.GetInvitations()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.GetInvitations() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bridge.GetInvitations() = %v, want %v", got, tt.want)
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Bridge.GetInvitations() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
