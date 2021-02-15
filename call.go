@@ -83,10 +83,10 @@ func NewCall(data url.Values) (Call, []string, error) {
 
 	locName, errorStrings = getFormFieldWithErrors(data, "loc_name", errorStrings)
 	locStreet, errorStrings = getFormFieldWithErrors(data, "loc_street", errorStrings)
-	locHouseNr, errorStrings = getFormFieldWithErrors(data, "loc_housener", errorStrings)
+	locHouseNr, errorStrings = getFormFieldWithErrors(data, "loc_housenr", errorStrings)
 	locPlz, errorStrings = getFormFieldWithErrors(data, "loc_plz", errorStrings)
 	locCity, errorStrings = getFormFieldWithErrors(data, "loc_city", errorStrings)
-	locOpt, errorStrings = getFormFieldWithErrors(data, "loc_opt", errorStrings)
+	locOpt = data.Get("loc_opt")
 	title, errorStrings = getFormFieldWithErrors(data, "title", errorStrings)
 
 	if youngOnly, err = strconv.ParseBool(data.Get("young_only")); err != nil {

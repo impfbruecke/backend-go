@@ -15,8 +15,8 @@
     <div class="row">
       <div class="column column-30">
         <div class="dropdown">
-          <label class="label-below" for="capacity">Impfstoff</label>         
-          <select>
+          <label class="label-below" for="young_only">Impfstoff</label>         
+          <select id="young_only" name="young_only">
             <!--- TODO FILL WITH LIFE-->
             <!--
             selected := CallStatus.Call.SelectedVaccine}}             
@@ -29,9 +29,9 @@
             {end}}
         -->
           <!--- TODO START PLACEHOLDER-->
-          <option selected="selected" value="setVaccine">Biontech</option>
-          <option  value="setVaccine">Moderna</option>
-          <option  value="setVaccine">Astra Zeneca</option>
+          <option selected="selected" value="false">Biontech</option>
+          <option  value="false">Moderna</option>
+          <option  value="true">Astra Zeneca</option>
           <!--- TODO END PLACEHOLDER-->
         </select>
         </div>
