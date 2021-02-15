@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	// "bytes"
 	"encoding/json"
 	"fmt"
@@ -40,8 +41,12 @@ func (s TwillioSender) SendMessage(msgTo, msgBody string) error {
 
 	data.Set("Parameters", string(jsonData))
 
+	if os.Getenv("IMPF_DISABLE_SMS") != "" {
+		log.Info("SMS sending disabled. Unset IMPF_DISABLE_SMS to enable")
+		return nil
+	}
+
 	// Create a new client and request
-	client := &http.Client{}
 	r, err := http.NewRequest("POST", s.endpoint, strings.NewReader(data.Encode())) // URL-encoded payload
 	if err != nil {
 		return err
@@ -51,13 +56,8 @@ func (s TwillioSender) SendMessage(msgTo, msgBody string) error {
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetBasicAuth(s.user, s.token)
 
-	if disableSMS != "" {
-		log.Info("SMS sending disabled. Unset IMPF_DISABLE_SMS to enable")
-		return nil
-	}
-
 	// Execute the request
-	res, err := client.Do(r)
+	res, err := Client.Do(r)
 	if err != nil {
 		return err
 	}

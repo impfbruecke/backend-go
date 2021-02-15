@@ -12,6 +12,15 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// HTTPClient interface
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+var (
+	Client HTTPClient
+)
+
 var (
 
 	// Instance of the main application
@@ -24,11 +33,9 @@ var (
 	store *sessions.CookieStore
 
 	// API auth for twilio
-	apiUser     string
-	apiPass     string
-	tokenSecret string
-	disableSMS  string
-	dbPath      string
+	// apiUser     string
+	// apiPass     string
+	// dbPath      string
 )
 
 // User holds a users account information
@@ -38,6 +45,7 @@ type User struct {
 }
 
 func init() {
+	Client = &http.Client{}
 
 	store = sessions.NewCookieStore([]byte(os.Getenv("IMPF_SESSION_SECRET")))
 
@@ -57,15 +65,9 @@ func init() {
 	}
 
 	// Show more logs if IMPF_MODE=DEVEL is set
-	apiUser = os.Getenv("IMPF_TWILIO_USER")
-	apiPass = os.Getenv("IMPF_TWILIO_PASS")
-	tokenSecret = os.Getenv("IMPF_TOKEN_SECRET")
-	disableSMS = os.Getenv("IMPF_DISABLE_SMS")
-	dbPath = os.Getenv("IMPF_DB_FILE")
-
-	// Add default if not set
-	if dbPath == "" {
-		dbPath = "./data.db"
+	if os.Getenv("IMPF_DB_FILE") == "" {
+		// Add default if not set
+		os.Setenv("IMPF_DB_FILE", "./data.db")
 	}
 
 	// Intial setup. Instanciate bridge and parse html templates
@@ -117,6 +119,10 @@ func main() {
 }
 
 func middlewareAPI(h http.Handler) http.Handler {
+
+	apiUser := os.Getenv("IMPF_TWILIO_USER")
+	apiPass := os.Getenv("IMPF_TWILIO_PASS")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
 

@@ -1,0 +1,29 @@
+- id: 0
+  phone: "1230"
+  call_id: 1
+  status: "accepted"
+  time: "2021-02-10 12:36:00+01:00"
+
+- id: 1
+  phone: "1231"
+  call_id: 1
+  status: "notified"
+  time: "2021-02-10 12:39:00+01:00"
+
+- id: 2
+  phone: "1231"
+  call_id: 2
+  status: "notified"
+  time: "2021-02-10 12:37:00+01:00"
+
+- id: 4
+  phone: "1231"
+  call_id: 3
+  status: "notified"
+  time: "2021-02-10 12:38:00+01:00"
+
+- id: 3
+  phone: "1232"
+  call_id: 2
+  status: "rejected"
+  time: "2021-02-10 12:40:00+01:00"

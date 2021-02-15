@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,7 +16,19 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"net/http"
 )
+
+// Custom type that allows setting the func that our Mock Do func will run
+// instead
+type MockClient struct {
+	MockDo func(req *http.Request) (*http.Response, error) // MockClient is the mock client
+}
+
+// Overriding what the Do function should "do" in our MockClient
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	return m.MockDo(req)
+}
 
 var (
 	fixtures *testfixtures.Loader
@@ -114,17 +129,63 @@ var (
 	}
 )
 
+var HTTPResponse string
+
+// formatRequest generates ascii representation of a request
+func formatRequest(r *http.Request) string {
+	// Create return string
+	var request []string // Add the request string
+	url := fmt.Sprintf("%v %v %v", r.Method, r.URL, r.Proto)
+	request = append(request, url)                             // Add the host
+	request = append(request, fmt.Sprintf("Host: %v", r.Host)) // Loop through headers
+	for name, headers := range r.Header {
+		name = strings.ToLower(name)
+		for _, h := range headers {
+			request = append(request, fmt.Sprintf("%v: %v", name, h))
+		}
+	}
+
+	// If this is a POST, add post data
+	if r.Method == "POST" {
+		r.ParseForm()
+		// request = append(request, "Formdata:")
+		request = append(request, r.Form.Encode())
+	} // Return the request as a string
+	return strings.Join(request, "\n")
+}
+
 func TestMain(m *testing.M) {
+
+	Client = &MockClient{
+		MockDo: func(req *http.Request) (*http.Response, error) {
+			fmt.Printf("Faking request: \n%s\n", formatRequest(req))
+			fmt.Printf("Faking response: %s\n", HTTPResponse)
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(HTTPResponse))),
+			}, nil
+		},
+	}
 
 	// Fix current time inside tests to:
 	// 2021-01-01 20:00:00 +0000 UTC
-	monkey.Patch(time.Now, func() time.Time { return time.Date(2021, 1, 1, 20, 0, 0, 0, time.UTC) })
-	fmt.Println("Time is now ", time.Now())
+	monkey.Patch(time.Now, func() time.Time { return time.Date(2999, 1, 1, 20, 0, 0, 0, time.UTC) })
+	fmt.Println("Time is now fixed to:", time.Now())
 
 	os.Exit(m.Run())
 }
 
-func prepareTestDatabase() {
+func prepareTestDatabase(fixtureFiles ...string) {
+
+	os.Setenv("IMPF_DISABLE_SMS", "")
+	os.Setenv("IMPF_MODE", "DEVEL")
+	os.Setenv("IMPF_SESSION_SECRET", "session_secret")
+	os.Setenv("IMPF_TWILIO_API_ENDPOINT", "https://studio.twilio.com/v2/Flows/")
+	os.Setenv("IMPF_TWILIO_API_FROM", "twilio_api_from")
+	os.Setenv("IMPF_TWILIO_API_PASS", "twilio_api_pass")
+	os.Setenv("IMPF_TWILIO_API_USER", "twilio_api_user")
+	os.Setenv("IMPF_TWILIO_PASS", "twilio_pass")
+	os.Setenv("IMPF_TWILIO_USER", "twilio_user")
 
 	var err error
 
@@ -151,7 +212,12 @@ func prepareTestDatabase() {
 	db.MustExec(schemaUsers)
 	db.MustExec(schemaNotifications)
 
-	sender = NewTwillioSender("test", "test", "test", "test")
+	sender = NewTwillioSender(
+		os.Getenv("IMPF_TWILIO_API_ENDPOINT"),
+		os.Getenv("IMPF_TWILIO_API_USER"),
+		os.Getenv("IMPF_TWILIO_API_PASS"),
+		os.Getenv("IMPF_TWILIO_API_FROM"),
+	)
 
 	bridge = &Bridge{
 		db:     db,
@@ -161,12 +227,20 @@ func prepareTestDatabase() {
 	// Open connection to the test database.
 	// Do NOT import fixtures in a production database!
 	// Existing data would be deleted.
+
+	// Set default fixtures if none where specified
+	if len(fixtureFiles) == 0 {
+		fixtureFiles = []string{
+			"testdata/fixtures/calls.yml",
+			"testdata/fixtures/invitations.yml",
+			"testdata/fixtures/persons.yml",
+		}
+	}
+
 	fixtures, err = testfixtures.New(
-		testfixtures.Database(db.DB),                              // You database connection
-		testfixtures.Dialect("sqlite"),                            // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
-		testfixtures.Files("./testdata/fixtures/persons.yml"),     // the directory containing the YAML files
-		testfixtures.Files("./testdata/fixtures/invitations.yml"), // the directory containing the YAML files
-		testfixtures.Files("./testdata/fixtures/calls.yml"),       // the directory containing the YAML files
+		testfixtures.Database(db.DB),        // You database connection
+		testfixtures.Dialect("sqlite"),      // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
+		testfixtures.Files(fixtureFiles...), // the directory containing the YAML files
 	)
 	if err != nil {
 		panic(err)
@@ -381,7 +455,13 @@ func TestBridge_GetCallStatus(t *testing.T) {
 
 func TestBridge_GetActiveCalls(t *testing.T) {
 
-	prepareTestDatabase()
+	prepareTestDatabase("testdata/fixtures/TestBridge_GetActiveCalls/calls.yml")
+
+	calls, err := bridge.GetAllCalls()
+
+	if err != nil {
+		panic(err)
+	}
 
 	tests := []struct {
 		name    string
@@ -389,11 +469,8 @@ func TestBridge_GetActiveCalls(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Get two active calls",
-			want: []Call{
-				fixtureCalls[0],
-				fixtureCalls[1],
-			},
+			name:    "Get two active calls",
+			want:    []Call{calls[0], calls[1]},
 			wantErr: false,
 		},
 	}
@@ -577,7 +654,12 @@ func TestNewBridge(t *testing.T) {
 
 func TestBridge_DeleteOldCalls(t *testing.T) {
 
-	prepareTestDatabase()
+	prepareTestDatabase("testdata/fixtures/TestBridge_DeleteOldCalls/calls.yml")
+
+	calls, err := bridge.GetAllCalls()
+	if err != nil {
+		panic(err)
+	}
 
 	tests := []struct {
 		name string
@@ -585,10 +667,7 @@ func TestBridge_DeleteOldCalls(t *testing.T) {
 	}{
 		{
 			name: "Get all calls after running deletion",
-			want: []Call{
-				fixtureCalls[0],
-				fixtureCalls[1],
-			},
+			want: []Call{calls[2]},
 		},
 	}
 	for _, tt := range tests {
@@ -680,7 +759,10 @@ func TestBridge_CallFull(t *testing.T) {
 }
 
 func TestBridge_LastCallNotified(t *testing.T) {
-	prepareTestDatabase()
+
+	prepareTestDatabase(
+		"testdata/fixtures/TestBridge_LastCallNotified/invitations.yml",
+		"testdata/fixtures/TestBridge_LastCallNotified/calls.yml")
 
 	tests := []struct {
 		name    string
@@ -688,9 +770,11 @@ func TestBridge_LastCallNotified(t *testing.T) {
 		want    Call
 		wantErr bool
 	}{
-		{"Phone 1230", fixturePersons[0], fixtureCalls[0], false},
-		{"Phone 1231", fixturePersons[1], fixtureCalls[0], false},
-		{"Phone 1232", fixturePersons[2], fixtureCalls[1], false},
+		{"Phone 0", Person{Phone: "0"}, fixtureCalls[1], false},
+		{"Phone 1", Person{Phone: "1"}, fixtureCalls[2], false},
+		{"Phone 2", Person{Phone: "2"}, fixtureCalls[1], false},
+		{"Phone 3", Person{Phone: "3"}, fixtureCalls[1], false},
+		{"Phone 4", Person{Phone: "4"}, fixtureCalls[1], false},
 		{"Phone noexist", Person{Phone: "noexist"}, Call{}, true},
 	}
 	for _, tt := range tests {
@@ -709,29 +793,62 @@ func TestBridge_LastCallNotified(t *testing.T) {
 }
 
 func TestBridge_PersonAcceptLastCall(t *testing.T) {
-	type fields struct {
-		db     *sqlx.DB
-		sender *TwillioSender
+
+	prepareTestDatabase(
+		"testdata/fixtures/TestBridge_PersonAcceptLastCall/invitations.yml",
+		"testdata/fixtures/TestBridge_PersonAcceptLastCall/calls.yml",
+	)
+
+	gotBefore, err := bridge.GetInvitations()
+
+	if err != nil {
+		panic(err)
 	}
-	type args struct {
-		phoneNumber string
-	}
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
+		name        string
+		phoneNumber string
+		want        []Invitation
+		wantErr     bool
 	}{
-		// TODO: Add test cases.
+		{"Phone 1230", "1230", gotBefore, false},
+		{"Phone 1231", "1231", []Invitation{
+			{
+				ID:     1,
+				Phone:  "1231",
+				CallID: 1,
+				Status: InvitationAccepted,
+				Time:   time.Now(),
+			},
+			gotBefore[0],
+			gotBefore[3],
+			gotBefore[2],
+			gotBefore[4],
+		}, false},
+		{"Phone 1232", "1232", gotBefore, true},
+		{"Phone noexist", "noexist", gotBefore, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b := &Bridge{
-				db:     tt.fields.db,
-				sender: tt.fields.sender,
-			}
-			if err := b.PersonAcceptLastCall(tt.args.phoneNumber); (err != nil) != tt.wantErr {
+
+			// Reset database to initial values on each test, since the tests
+			// change the contents
+			prepareTestDatabase(
+				"testdata/fixtures/TestBridge_PersonAcceptLastCall/invitations.yml",
+				"testdata/fixtures/TestBridge_PersonAcceptLastCall/calls.yml",
+			)
+
+			if err := bridge.PersonAcceptLastCall(tt.phoneNumber); (err != nil) != tt.wantErr {
 				t.Errorf("Bridge.PersonAcceptLastCall() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			gotAfter, err := bridge.GetInvitations()
+			if err != nil {
+				panic(err)
+			}
+
+			if diff := cmp.Diff(tt.want, gotAfter); diff != "" {
+				t.Errorf("Bridge.GetInvitations() after PersonAcceptLastCall(%s) mismatch (-want +got):\n%s", tt.phoneNumber, diff)
 			}
 		})
 	}
@@ -769,6 +886,7 @@ func TestBridge_PersonCancelCall(t *testing.T) {
 func TestBridge_PersonDelete(t *testing.T) {
 
 	prepareTestDatabase()
+
 	tests := []struct {
 		name        string
 		phoneNumber string
@@ -861,6 +979,9 @@ func TestBridge_GetAllCalls(t *testing.T) {
 }
 
 func TestBridge_GetInvitations(t *testing.T) {
+
+	prepareTestDatabase()
+
 	tests := []struct {
 		name    string
 		want    []Invitation
