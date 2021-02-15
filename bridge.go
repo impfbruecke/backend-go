@@ -282,8 +282,8 @@ func (b *Bridge) AddPerson(person Person) error {
 
 	tx := b.db.MustBegin()
 	if res, err = tx.NamedExec(
-		"INSERT INTO persons (center_id, group_num, phone, status) VALUES "+
-			"(:center_id, :group_num, :phone, :status)", &person); err != nil {
+		"INSERT INTO persons (center_id, group_num, phone, status, age) VALUES "+
+			"(:center_id, :group_num, :phone, :status, :age)", &person); err != nil {
 		return err
 	}
 
@@ -306,8 +306,8 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	tx := b.db.MustBegin()
 	for k := range persons {
 		if _, err := tx.NamedExec(
-			"INSERT INTO persons (center_id, group_num, phone, status) VALUES "+
-				"(:center_id, :group_num, :phone, :status)", &persons[k]); err != nil {
+			"INSERT INTO persons (center_id, group_num, phone, status, age) VALUES "+
+				"(:center_id, :group_num, :phone, :status, :age)", &persons[k]); err != nil {
 			return err
 		}
 
@@ -391,19 +391,26 @@ func (b *Bridge) GetNextPersonsForCall(num, callID int) ([]Person, error) {
 	// Get all groups
 
 	log.Debugf("Retrieving next persons %v for call ID: %v\n", num, callID)
+	var err error
+	var call CallStatus
+
+	call, err = bridge.GetCallStatus(strconv.Itoa(callID))
+	if err != nil {
+		return []Person{}, err
+	}
 
 	persons := []Person{}
-	err := b.db.Select(&persons,
+	err = b.db.Select(&persons,
 		`SELECT * FROM persons
-			WHERE id NOT IN (
-				SELECT id FROM invitations
-					WHERE status NOT IN (
-						"accepted", "notified"
-					)
-					OR call_id !=$1
+			WHERE phone NOT IN (
+				SELECT phone FROM invitations
+					WHERE call_id=$1
 				)
-			ORDER BY group_num LIMIT $2`,
-		callID, num)
+			AND age<=$2
+			AND age>=$3
+			AND status=0
+			ORDER BY group_num LIMIT $4`,
+		callID, call.Call.AgeMax, call.Call.AgeMin, num)
 	if err != nil {
 		log.Error(err)
 		return persons, err
@@ -458,7 +465,7 @@ type Invitation struct {
 	Phone  string    `db:"phone"`
 	CallID int       `db:"call_id"`
 	Status string    `db:"status"`
-	time   time.Time `db:"time"`
+	Time   time.Time `db:"time"`
 }
 
 func (b *Bridge) GetInvitations() ([]Invitation, error) {

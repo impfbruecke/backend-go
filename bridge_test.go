@@ -71,18 +71,21 @@ var (
 			Phone:    "1230",
 			CenterID: 0,
 			Group:    1,
+			Age:      10,
 			Status:   false,
 		},
 		{
 			Phone:    "1231",
 			CenterID: 0,
 			Group:    2,
+			Age:      70,
 			Status:   false,
 		},
 		{
 			Phone:    "1232",
 			CenterID: 0,
 			Group:    1,
+			Age:      150,
 			Status:   true,
 		},
 	}
@@ -393,11 +396,11 @@ func TestBridge_GetNextPersonsForCall(t *testing.T) {
 	var allPersons []Person
 
 	fixtures, err = testfixtures.New(
-		testfixtures.Database(bridge.db.DB),                                  // You database connection
-		testfixtures.Dialect("sqlite"),                                       // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
-		testfixtures.Files("./testdata/fixtures/persons_selectnext.yml"),     // the directory containing the YAML files
-		testfixtures.Files("./testdata/fixtures/invitations_selectnext.yml"), // the directory containing the YAML files
-		testfixtures.Files("./testdata/fixtures/calls_selectnext.yml"),       // the directory containing the YAML files
+		testfixtures.Database(bridge.db.DB),                                             // You database connection
+		testfixtures.Dialect("sqlite"),                                                  // Available: "postgresql", "timescaledb", "mysql", "mariadb", "sqlite" and "sqlserver"
+		testfixtures.Files("./testdata/fixtures/getNextPersonsForCall/persons.yml"),     // the directory containing the YAML files
+		testfixtures.Files("./testdata/fixtures/getNextPersonsForCall/invitations.yml"), // the directory containing the YAML files
+		testfixtures.Files("./testdata/fixtures/getNextPersonsForCall/calls.yml"),       // the directory containing the YAML files
 	)
 	if err != nil {
 		panic(err)
@@ -547,6 +550,8 @@ func TestNewBridge(t *testing.T) {
 }
 
 func TestBridge_DeleteOldCalls(t *testing.T) {
+
+	prepareTestDatabase()
 	tests := []struct {
 		name string
 		want []Call
