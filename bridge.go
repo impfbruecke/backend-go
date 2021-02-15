@@ -472,10 +472,10 @@ type Invitation struct {
 type invitationStatus string
 
 const (
+	InvitationRejected  invitationStatus = "rejected"
 	InvitationAccepted  invitationStatus = "accepted"
-	InvitationRejected                   = "rejected"
-	InvitationCancelled                  = "cancelled"
-	InvitationNotified                   = "notified"
+	InvitationCancelled invitationStatus = "cancelled"
+	InvitationNotified  invitationStatus = "notified"
 )
 
 func (b *Bridge) GetInvitations() ([]Invitation, error) {
@@ -538,6 +538,28 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 
 	if isFull {
 		log.Debugf("Rejecting number %s for call (is full)\n", phoneNumber)
+		_, err = bridge.db.NamedExec(
+			`UPDATE invitations SET
+				status=:status,
+				time=:time
+			WHERE
+				phone=:phone
+				AND call_id=:call_id
+				AND status=:oldstatus`,
+			map[string]interface{}{
+				"status":    InvitationAccepted,
+				"oldstatus": InvitationRejected,
+				"phone":     phoneNumber,
+				"time":      time.Now(),
+				"call_id":   lastCall.ID,
+			},
+		)
+
+		if err != nil {
+			log.Errorf("Failed to set accepted status for last invitation of %s\n", phoneNumber)
+			return err
+		}
+
 		if err := b.sender.SendMessageReject(phoneNumber); err != nil {
 			log.Errorf("Failed to send reject message for phone %s\n", phoneNumber)
 			log.Error(err)
