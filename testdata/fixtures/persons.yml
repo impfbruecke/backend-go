@@ -1,14 +1,17 @@
 - phone: "1230"
   center_id: 0
+  age: 10
   group_num: 1
   status: 0
 
 - phone: "1231"
   center_id: 0
+  age: 70
   group_num: 2
   status: 0
 
 - phone: "1232"
   center_id: 0
+  age: 150
   group_num: 1
   status: 1

@@ -1,54 +1,65 @@
 - phone: "0"
   center_id: 0
+  age: 1
   group_num: 1
   status: 0
 
 - phone: "10"
   center_id: 0
+  age: 20
   group_num: 1
   status: 1
 
 - phone: "11"
   center_id: 0
+  age: 40
   group_num: 1
   status: 0
 
 - phone: "1"
   center_id: 0
+  age: 60
   group_num: 1
   status: 0
 
 - phone: "2"
   center_id: 0
+  age: 65
   group_num: 2
   status: 0
 
 - phone: "3"
   center_id: 0
+  age: 70
   group_num: 2
   status: 0
 
 - phone: "4"
   center_id: 0
+  age: 75
   group_num: 4
   status: 0
 
 - phone: "7"
   center_id: 0
+  age: 80
   group_num: 4
   status: 0
 
 - phone: "8"
   center_id: 0
+  age: 85
   group_num: 4
   status: 0
 
 - phone: "5"
   center_id: 0
+  age: 90
   group_num: 4
   status: 0
 
 - phone: "6"
   center_id: 1
+  age: 100
   group_num: 2
   status: 0
