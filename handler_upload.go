@@ -61,9 +61,15 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		ageNum, err := strconv.Atoi(record[2])
+		if err != nil {
+			log.Warn(err)
+			return
+		}
+
 		// Try to create a new persion object from the data and return on
 		// errors
-		p, err := NewPerson(0, groupNum, record[1], false)
+		p, err := NewPerson(0, groupNum, record[1], false, ageNum)
 		if err != nil {
 			log.Warn(err)
 			return

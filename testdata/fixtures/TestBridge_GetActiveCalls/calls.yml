@@ -3,7 +3,7 @@
   center_id: 0
   capacity: 1
   time_start: "2021-02-10 12:30:00+01:00"
-  time_end: "2021-02-10 12:35:00+01:00"
+  time_end: "3000-02-10 12:35:00+01:00"
   loc_name: "loc_name1"
   age_min: 0
   age_max: 100
@@ -18,7 +18,7 @@
   center_id: 0
   capacity: 2
   time_start: "2021-02-10 12:31:00+01:00"
-  time_end: "2021-02-10 12:36:00+01:00"
+  time_end: "3000-02-10 12:36:00+01:00"
   age_min: 0
   age_max: 70
   loc_name: "loc_name2"

@@ -33,7 +33,7 @@
   center_id: 0
   capacity: 3
   time_start: "2021-01-01 12:30:00+01:00"
-  time_end: "2021-01-01 12:35:00+01:00"
+  time_end: "3000-01-01 12:35:00+01:00"
   age_min: 70
   age_max: 200
   loc_name: "loc_name3"

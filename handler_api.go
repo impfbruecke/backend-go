@@ -40,7 +40,7 @@ func handlerAPI(w http.ResponseWriter, r *http.Request) {
 					header = http.StatusBadRequest
 				}
 			case "storno":
-				if err := bridge.PersonCancelCall(phoneNumber); err != nil {
+				if err := bridge.PersonCancelAllCalls(phoneNumber); err != nil {
 					log.Error(err)
 					header = http.StatusBadRequest
 				}

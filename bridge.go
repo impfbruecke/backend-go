@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS persons (
 	phone TEXT PRIMARY KEY,
 	center_id INTEGER NOT NULL,
 	group_num INTEGER NOT NULL,
-	status INTEGER NOT NULL
+	status INTEGER NOT NULL,
+	age INTEGER NOT NULL
 );
 `
 var schemaCalls = `
@@ -36,7 +37,8 @@ CREATE TABLE IF NOT EXISTS calls (
 	capacity INTEGER NOT NULL,
 	time_start DATETIME NOT NULL,
 	time_end DATETIME NOT NULL,
-	young_only INTEGER NOT NULL,
+	age_min INTEGER NOT NULL,
+	age_max INTEGER NOT NULL,
 	loc_name TEXT NOT NULL,
 	loc_street TEXT NOT NULL,
 	loc_housenr TEXT NOT NULL,
@@ -68,11 +70,12 @@ CREATE TABLE IF NOT EXISTS invitations (
 func NewBridge() *Bridge {
 
 	log.Info("Creating new bridge")
-	log.Info("Using database:", dbPath)
+
+	log.Info("Using database:", os.Getenv("IMPF_DB_FILE"))
 
 	// Open connection to database file. Will be created if it does not already
 	// exist. Exit application on errors, we can't continue without database
-	db, err := sqlx.Connect("sqlite3", dbPath)
+	db, err := sqlx.Connect("sqlite3", os.Getenv("IMPF_DB_FILE"))
 
 	// Only required because of a bug with sqlx and sqlite.
 	// TODO remove when migrating to postgresql if performance is too bad
@@ -236,7 +239,8 @@ func (b *Bridge) AddCall(call Call) error {
 			capacity,
 			time_start,
 			time_end,
-			young_only,
+			age_min,
+			age_max,
 			loc_name,
 			loc_street,
 			loc_housenr,
@@ -249,7 +253,8 @@ func (b *Bridge) AddCall(call Call) error {
 			:capacity,
 			:time_start,
 			:time_end,
-			:young_only,
+			:age_min,
+			:age_max,
 			:loc_name,
 			:loc_street,
 			:loc_housenr,
@@ -278,8 +283,8 @@ func (b *Bridge) AddPerson(person Person) error {
 
 	tx := b.db.MustBegin()
 	if res, err = tx.NamedExec(
-		"INSERT INTO persons (center_id, group_num, phone, status) VALUES "+
-			"(:center_id, :group_num, :phone, :status)", &person); err != nil {
+		"INSERT INTO persons (center_id, group_num, phone, status, age) VALUES "+
+			"(:center_id, :group_num, :phone, :status, :age)", &person); err != nil {
 		return err
 	}
 
@@ -302,8 +307,8 @@ func (b *Bridge) AddPersons(persons []Person) error {
 	tx := b.db.MustBegin()
 	for k := range persons {
 		if _, err := tx.NamedExec(
-			"INSERT INTO persons (center_id, group_num, phone, status) VALUES "+
-				"(:center_id, :group_num, :phone, :status)", &persons[k]); err != nil {
+			"INSERT INTO persons (center_id, group_num, phone, status, age) VALUES "+
+				"(:center_id, :group_num, :phone, :status, :age)", &persons[k]); err != nil {
 			return err
 		}
 
@@ -358,6 +363,23 @@ func (b *Bridge) GetActiveCalls() ([]Call, error) {
 	return calls, err
 }
 
+// GetAllCalls returns a list of all calls
+func (b *Bridge) GetAllCalls() ([]Call, error) {
+
+	// Query the database, storing results in a []User (wrapped in []interface{})
+	calls := []Call{}
+	// b.db.Select(&calls, "SELECT * FROM calls ORDER BY time_start ASC")j
+	err := b.db.Select(&calls, "SELECT * FROM calls")
+
+	if err != nil {
+		log.Error(err)
+		return calls, err
+	}
+
+	log.Debugf("Found calls: %+v\n", calls)
+	return calls, err
+}
+
 // GetNextPersonsForCall finds the next `num` persons that should be notified
 // for a callID. Selection is based on group_num
 //TODO FIXME
@@ -370,19 +392,26 @@ func (b *Bridge) GetNextPersonsForCall(num, callID int) ([]Person, error) {
 	// Get all groups
 
 	log.Debugf("Retrieving next persons %v for call ID: %v\n", num, callID)
+	var err error
+	var call CallStatus
+
+	call, err = bridge.GetCallStatus(strconv.Itoa(callID))
+	if err != nil {
+		return []Person{}, err
+	}
 
 	persons := []Person{}
-	err := b.db.Select(&persons,
+	err = b.db.Select(&persons,
 		`SELECT * FROM persons
-			WHERE id NOT IN (
-				SELECT id FROM invitations
-					WHERE status NOT IN (
-						"accepted", "notified"
-					)
-					OR call_id !=$1
+			WHERE phone NOT IN (
+				SELECT phone FROM invitations
+					WHERE call_id=$1
 				)
-			ORDER BY group_num LIMIT $2`,
-		callID, num)
+			AND age<=$2
+			AND age>=$3
+			AND status=0
+			ORDER BY group_num LIMIT $4`,
+		callID, call.Call.AgeMax, call.Call.AgeMin, num)
 	if err != nil {
 		log.Error(err)
 		return persons, err
@@ -432,17 +461,57 @@ func (b *Bridge) GetPersons() ([]Person, error) {
 	return persons, err
 }
 
+type Invitation struct {
+	ID     int              `db:"id"`
+	Phone  string           `db:"phone"`
+	CallID int              `db:"call_id"`
+	Status invitationStatus `db:"status"`
+	Time   time.Time        `db:"time"`
+}
+
+type invitationStatus string
+
+const (
+	InvitationRejected  invitationStatus = "rejected"
+	InvitationAccepted  invitationStatus = "accepted"
+	InvitationCancelled invitationStatus = "cancelled"
+	InvitationNotified  invitationStatus = "notified"
+)
+
+func (b *Bridge) GetInvitations() ([]Invitation, error) {
+
+	log.Debug("Retrieving invitations")
+
+	invitations := []Invitation{}
+	err := b.db.Select(&invitations, "SELECT * FROM invitations ORDER BY time DESC")
+	if err != nil {
+		log.Error(err)
+		return invitations, err
+	}
+
+	// log.Debugf("Found invitations: %+v\n", invitations)
+	return invitations, err
+}
+
 // CallFull is true if the call is full. Used to check call status
 func (b *Bridge) CallFull(call Call) (bool, error) {
+
 	var numAccpets int
-	err := b.db.Get(numAccpets, "select count(id) from invitations where call_id=$1 and status='accepted'", call.ID)
+	err := b.db.Get(&numAccpets, "select count(id) from invitations where call_id=$1 and status='accepted'", call.ID)
+	log.Debugf("Checking full status for call %v: %v/%v", call.ID, numAccpets, call.Capacity)
 	return numAccpets >= call.Capacity, err
 }
 
 // LastCallNotified retrieves the last call a person was notified to
 func (b *Bridge) LastCallNotified(person Person) (Call, error) {
 	lastCallOfPerson := Call{}
-	err := b.db.Get(&lastCallOfPerson, "select calls.* from calls join invitations where invitations.phone=$1 and invitations.status = \"accepted\" order by invitations.time desc limit 1", person.Phone)
+	err := b.db.Get(&lastCallOfPerson,
+		`SELECT * FROM calls
+		WHERE id = (
+			SELECT call_id FROM invitations
+			WHERE phone=$1
+			ORDER BY time DESC
+		)`, person.Phone)
 	return lastCallOfPerson, err
 }
 
@@ -453,63 +522,126 @@ func (b *Bridge) PersonAcceptLastCall(phoneNumber string) error {
 
 	log.Debugf("number %s trying to accept call\n", phoneNumber)
 
-	lastCall, err := b.LastCallNotified(Person{Phone: phoneNumber})
+	var err error
+	var lastCall Call
+	var isFull bool
 
-	if err != nil {
+	if lastCall, err = b.LastCallNotified(Person{Phone: phoneNumber}); err != nil {
+		log.Debugf("Phone %s has not been invited yet\n", phoneNumber)
 		return err
 	}
 
-	isFull, err := b.CallFull(lastCall)
-
-	if err != nil {
+	if isFull, err = b.CallFull(lastCall); err != nil {
+		log.Debugf("Last call %v, does not exist\n", lastCall.ID)
 		return err
 	}
 
 	if isFull {
-		log.Debugf("number %s rejected for call (is full)\n", phoneNumber)
+		log.Debugf("Rejecting number %s for call (is full)\n", phoneNumber)
+		_, err = bridge.db.NamedExec(
+			`UPDATE invitations SET
+				status=:status,
+				time=:time
+			WHERE
+				phone=:phone
+				AND call_id=:call_id
+				AND status=:oldstatus`,
+			map[string]interface{}{
+				"status":    InvitationAccepted,
+				"oldstatus": InvitationRejected,
+				"phone":     phoneNumber,
+				"time":      time.Now(),
+				"call_id":   lastCall.ID,
+			},
+		)
+
+		if err != nil {
+			log.Errorf("Failed to set accepted status for last invitation of %s\n", phoneNumber)
+			return err
+		}
+
 		if err := b.sender.SendMessageReject(phoneNumber); err != nil {
+			log.Errorf("Failed to send reject message for phone %s\n", phoneNumber)
 			log.Error(err)
 		}
 	} else {
 
 		log.Debugf("Accepting number %s for call \n", phoneNumber)
 
-		if err = b.sender.SendMessageAccept(
-			phoneNumber,
-			lastCall.TimeStart.Format("14:12"),
-			lastCall.TimeEnd.Format("14:12"),
-			lastCall.LocName,
-			lastCall.LocStreet,
-			lastCall.LocHouseNr,
-			lastCall.LocPLZ,
-			lastCall.LocCity,
-			lastCall.LocOpt,
-			genOTP(phoneNumber, lastCall.ID),
-		); err != nil {
+		log.Debugf("Setting status=accepted for phone %s\n", phoneNumber)
+
+		var res sql.Result
+		res, err = bridge.db.NamedExec(
+			`UPDATE invitations SET
+				status=:status,
+				time=:time
+			WHERE
+				phone=:phone
+				AND call_id=:call_id
+				AND status=:oldstatus`,
+			map[string]interface{}{
+				"status":    InvitationAccepted,
+				"oldstatus": InvitationNotified,
+				"phone":     phoneNumber,
+				"time":      time.Now(),
+				"call_id":   lastCall.ID,
+			},
+		)
+
+		if err != nil {
+			log.Errorf("Failed to set accepted status for last invitation of %s\n", phoneNumber)
 			return err
 		}
 
-		_, err = bridge.db.NamedExec(
-			`UPDATE invitations SET status = "accepted", time=:time WHERE phone=:phone `, //TODO Test
-			map[string]interface{}{
-				"phone": phoneNumber,
-				"time":  time.Now(),
-			},
-		)
+		rowNum, err := res.RowsAffected()
+
+		if err != nil {
+			log.Error("Failed to get number of affected invitations")
+			return err
+		}
+
+		log.Debugf("Updated %v invitations\n", rowNum)
+
+		if rowNum == 0 {
+			log.Warn("No invitations updated, call might have been already accepted")
+		} else {
+
+			log.Debugf("Sending accept message to phone %s\n", phoneNumber)
+
+			if err = b.sender.SendMessageAccept(
+				phoneNumber,
+				lastCall.TimeStart.Format("14:12"),
+				lastCall.TimeEnd.Format("14:12"),
+				lastCall.LocName,
+				lastCall.LocStreet,
+				lastCall.LocHouseNr,
+				lastCall.LocPLZ,
+				lastCall.LocCity,
+				lastCall.LocOpt,
+				genOTP(phoneNumber, lastCall.ID),
+			); err != nil {
+				log.Errorf("Failed to send accept message for phone %s: %v\n", phoneNumber, err)
+				return err
+			}
+		}
 	}
 
 	return err
 }
 
-// PersonCancelCall cancels the last call a person was invited to
-func (b *Bridge) PersonCancelCall(phoneNumber string) error {
+// PersonCancelAllCalls cancels all accepted calls
+func (b *Bridge) PersonCancelAllCalls(phoneNumber string) error {
 
 	log.Debugf("Cancelling call for number %s\n", phoneNumber)
 
 	_, err := bridge.db.NamedExec(
-		`UPDATE invitations SET status = "cancelled" WHERE phone=:phone`,
+		`UPDATE invitations SET status=:newstatus, time=:time WHERE phone=:phone AND status=:oldstatus`,
+
 		map[string]interface{}{
-			"phone": phoneNumber,
+			"phone":     phoneNumber,
+			"oldstatus": InvitationAccepted,
+			"newstatus": InvitationCancelled,
+			"time":      time.Now(),
 		},
 	)
 
@@ -527,15 +659,18 @@ func (b *Bridge) PersonDelete(phoneNumber string) error {
 	result, err := b.db.NamedExec("DELETE FROM persons WHERE phone=:phone", m)
 
 	if err != nil {
+		log.Warnf("Phone %s not deleted %v\n", phoneNumber, err)
 		return err
 	}
 
 	numrows, err := result.RowsAffected()
 	if err != nil {
+		log.Warnf("Failed to get rows affected by deletion %v\n", err)
 		return err
 	}
 
 	if err := b.sender.SendMessageDelete(phoneNumber); err != nil {
+		log.Warnf("Failed to send deletion confirmation to %s: %v\n", phoneNumber, err)
 		return err
 	}
 
